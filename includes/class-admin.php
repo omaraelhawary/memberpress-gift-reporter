@@ -101,5 +101,4 @@ class MPGR_Admin {
 		echo '</div>';
 	}
     
-    
 }
