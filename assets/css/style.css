@@ -83,12 +83,29 @@
     transition: all 0.2s ease;
 }
 
+/* Add dropdown icon for select elements */
+.mpgr-filter-group select {
+    appearance: none;
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23666' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6,9 12,15 18,9'%3e%3c/polyline%3e%3c/svg%3e");
+    background-repeat: no-repeat;
+    background-position: right 12px center;
+    background-size: 16px;
+    padding-right: 40px;
+}
+
 .mpgr-filter-group input:focus,
 .mpgr-filter-group select:focus {
     outline: none;
     border-color: #0073aa;
     box-shadow: 0 0 0 3px rgba(0, 115, 170, 0.1);
     transform: translateY(-1px);
+}
+
+/* Ensure dropdown icon remains visible on focus */
+.mpgr-filter-group select:focus {
+    background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%230073aa' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6,9 12,15 18,9'%3e%3c/polyline%3e%3c/svg%3e");
 }
 
 .mpgr-filter-group input::placeholder {
