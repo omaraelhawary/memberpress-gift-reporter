@@ -21,20 +21,7 @@
         formData.append('action', 'mpgr_export_csv');
         formData.append('nonce', mpgr_ajax.nonce);
 
-        // Add any filter parameters
-        var urlParams = new URLSearchParams(window.location.search);
-        if (urlParams.has('start_date')) {
-            formData.append('start_date', urlParams.get('start_date'));
-        }
-        if (urlParams.has('end_date')) {
-            formData.append('end_date', urlParams.get('end_date'));
-        }
-        if (urlParams.has('gift_status')) {
-            formData.append('gift_status', urlParams.get('gift_status'));
-        }
-        if (urlParams.has('gifter_email')) {
-            formData.append('gifter_email', urlParams.get('gifter_email'));
-        }
+        // No filter parameters needed - export all data
 
         // Make AJAX request
         $.ajax({

@@ -38,24 +38,7 @@ class MPGR_Gift_Report {
 			wp_die( __( 'Access denied', 'memberpress-gift-reporter' ) );
 		}
 
-		$filters = array();
-		if ( ! empty( $_POST['start_date'] ) ) {
-			$filters['start_date'] = sanitize_text_field( $_POST['start_date'] );
-		}
-		if ( ! empty( $_POST['end_date'] ) ) {
-			$filters['end_date'] = sanitize_text_field( $_POST['end_date'] );
-		}
-		if ( ! empty( $_POST['gift_status'] ) ) {
-			$filters['gift_status'] = sanitize_text_field( $_POST['gift_status'] );
-		}
-		if ( ! empty( $_POST['gifter_email'] ) ) {
-			$filters['gifter_email'] = sanitize_text_field( $_POST['gifter_email'] );
-		}
-		if ( ! empty( $_POST['product_id'] ) ) {
-			$filters['product_id'] = intval( $_POST['product_id'] );
-		}
-
-		$this->generate_report( $filters );
+		$this->generate_report();
 		$this->export_csv();
 	}
     
@@ -87,16 +70,7 @@ class MPGR_Gift_Report {
      * REST API get report
      */
     public function rest_get_report($request) {
-        $filters = array();
-        
-        if ($request->get_param('start_date')) {
-            $filters['start_date'] = sanitize_text_field($request->get_param('start_date'));
-        }
-        if ($request->get_param('end_date')) {
-            $filters['end_date'] = sanitize_text_field($request->get_param('end_date'));
-        }
-        
-        $data = $this->generate_report($filters);
+        $data = $this->generate_report();
         $summary = $this->get_summary();
         
         return array(
@@ -110,60 +84,18 @@ class MPGR_Gift_Report {
      * REST API export CSV
      */
     public function rest_export_csv($request) {
-        $filters = array();
-        
-        if ($request->get_param('start_date')) {
-            $filters['start_date'] = sanitize_text_field($request->get_param('start_date'));
-        }
-        if ($request->get_param('end_date')) {
-            $filters['end_date'] = sanitize_text_field($request->get_param('end_date'));
-        }
-        
-        $this->generate_report($filters);
+        $this->generate_report();
         $this->export_csv();
     }
     
     /**
      * Generate the gift report
      */
-    public function generate_report($filters = array(), $limit = 1000, $offset = 0) {
+    public function generate_report($limit = 1000, $offset = 0) {
         global $wpdb;
         
-        $where_conditions = array();
-        
-        // Base conditions
-        $where_conditions[] = "gifter_txn.status IN ('complete', 'confirmed', 'refunded')";
-        
-        // Date range filter
-        if (!empty($filters['start_date'])) {
-            $start_date = $wpdb->prepare('%s', $filters['start_date']);
-            $where_conditions[] = "gifter_txn.created_at >= {$start_date}";
-        }
-        
-        if (!empty($filters['end_date'])) {
-            $end_date = $wpdb->prepare('%s', $filters['end_date']);
-            $where_conditions[] = "gifter_txn.created_at <= {$end_date}";
-        }
-        
-        // Product filter
-        if (!empty($filters['product_id'])) {
-            $product_id = intval($filters['product_id']);
-            $where_conditions[] = "gifter_txn.product_id = {$product_id}";
-        }
-        
-        // Gift status filter
-        if (!empty($filters['gift_status'])) {
-            $status = $wpdb->prepare('%s', $filters['gift_status']);
-            $where_conditions[] = "COALESCE(gift_status.meta_value, 'unclaimed') = {$status}";
-        }
-        
-        // Gifter email filter
-        if (!empty($filters['gifter_email'])) {
-            $email = $wpdb->prepare('%s', '%' . $wpdb->esc_like($filters['gifter_email']) . '%');
-            $where_conditions[] = "gifter.user_email LIKE {$email}";
-        }
-        
-        $where_clause = implode(' AND ', $where_conditions);
+        // Base conditions - show all gift transactions
+        $where_clause = "gifter_txn.status IN ('complete', 'confirmed', 'refunded')";
         
         // Add pagination
         $limit_clause = '';
@@ -325,7 +257,7 @@ class MPGR_Gift_Report {
         $offset = 0;
         
         do {
-            $data = $this->generate_report(array(), $chunk_size, $offset);
+            $data = $this->generate_report($chunk_size, $offset);
             
             if (!empty($data)) {
                 foreach ($data as $row) {

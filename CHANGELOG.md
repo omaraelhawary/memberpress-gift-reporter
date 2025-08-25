@@ -10,7 +10,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 - Initial plugin structure and functionality
 - Gift report generation and display
-- CSV export functionality
+- CSV export functionality (all data)
 - REST API endpoints
 - Admin interface integration
 - WordPress coding standards compliance
@@ -24,7 +24,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - N/A
 
 ### Removed
-- N/A
+- Filtering functionality from report generation and CSV export
+- Filter parameters from REST API endpoints
+- Frontend filter handling in JavaScript
 
 ### Fixed
 - N/A
@@ -40,7 +42,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 - Initial release of MemberPress Gift Reporter
 - Complete gift tracking and reporting functionality
-- CSV export with filtering options
+- CSV export functionality (all data)
 - REST API for programmatic access
 - Admin dashboard integration
 - Comprehensive documentation
@@ -52,10 +54,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Recipient Information**: Link gift givers to recipients
 - **Status Monitoring**: Track claimed, unclaimed, and invalid gifts
 - **Revenue Reporting**: Calculate total revenue from gift sales
-- **CSV Export**: Download reports in spreadsheet format
+- **CSV Export**: Download reports in spreadsheet format (all data)
 - **REST API**: Programmatic access to report data
 - **Admin Interface**: Clean, user-friendly dashboard
-- **Filtering Options**: Filter reports by date, status, and other criteria
 
 ### Technical Implementation
 - WordPress plugin architecture
