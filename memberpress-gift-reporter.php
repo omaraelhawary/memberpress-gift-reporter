@@ -3,7 +3,7 @@
  * Plugin Name: MemberPress Gift Reporter
  * Plugin URI: https://github.com/omaraelhawary/memberpress-gift-reporter
  * Description: Generate comprehensive reports for MemberPress Gifting add-on, showing the linkage between gift givers and recipients.
- * Version: 1.0.0
+ * Version: 1.1.0
  * Author: Omar ElHawary
  * Author URI: https://www.linkedin.com/in/omaraelhawary/
  * License: GPL v2 or later
@@ -16,7 +16,7 @@
  * Network: false
  * 
  * @package MemberPressGiftReporter
- * @version 1.0.0
+ * @version 1.1.0
  */
 
 // Prevent direct access.
@@ -25,7 +25,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 
 // Define plugin constants.
-define( 'MPGR_VERSION', '1.0.0' );
+define( 'MPGR_VERSION', '1.1.0' );
 define( 'MPGR_PLUGIN_URL', plugin_dir_url( __FILE__ ) );
 define( 'MPGR_PLUGIN_PATH', plugin_dir_path( __FILE__ ) );
 define( 'MPGR_PLUGIN_BASENAME', plugin_basename( __FILE__ ) );
@@ -97,15 +97,7 @@ class MemberPressGiftReporter {
 			'MeprUser class' => class_exists( 'MeprUser' ),
 		);
 
-		// For debugging (only show to administrators).
-		if ( current_user_can( 'manage_options' ) && isset( $_GET['mpgr_debug'] ) ) {
-			echo '<div class="notice notice-info">';
-			echo '<h4>MemberPress Detection Debug:</h4>';
-			foreach ( $checks as $check => $result ) {
-				echo '<p><strong>' . $check . ':</strong> ' . ( $result ? '✓ Found' : '✗ Not found' ) . '</p>';
-			}
-			echo '</div>';
-		}
+		// Debug information removed for security
 
 		return in_array( true, $checks, true );
 	}
