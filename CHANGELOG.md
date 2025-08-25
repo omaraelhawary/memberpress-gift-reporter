@@ -16,9 +16,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - WordPress coding standards compliance
 - GitHub Actions for PHPCS
 - Comprehensive documentation
+- Improved gift transaction detection (now shows ALL gifts)
+- Enhanced query structure for better performance
 
 ### Changed
-- N/A
+- Updated gift transaction detection logic to be more inclusive
+- Improved query structure to match MemberPress dev team's approach
 
 ### Deprecated
 - N/A

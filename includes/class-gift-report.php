@@ -94,15 +94,14 @@ class MPGR_Gift_Report {
     public function generate_report($limit = 1000, $offset = 0) {
         global $wpdb;
         
-        // Base conditions - show all gift transactions
-        $where_clause = "gifter_txn.status IN ('complete', 'confirmed', 'refunded')";
-        
         // Add pagination
         $limit_clause = '';
         if ($limit > 0) {
             $limit_clause = $wpdb->prepare(' LIMIT %d OFFSET %d', $limit, $offset);
         }
         
+        // Use a more inclusive approach to find all gift transactions
+        // This matches the MemberPress dev team's approach but with better structure
         $query = "
         SELECT 
             gifter_txn.id AS gift_transaction_id,
@@ -110,6 +109,7 @@ class MPGR_Gift_Report {
             gifter_txn.trans_num AS gift_transaction_number,
             gifter_txn.amount AS gift_amount,
             gifter_txn.total AS gift_total,
+            gifter_txn.status AS transaction_status,
             
             gifter.ID AS gifter_user_id,
             gifter.user_login AS gifter_username,
@@ -145,10 +145,10 @@ class MPGR_Gift_Report {
         FROM 
             {$wpdb->prefix}mepr_transactions AS gifter_txn
             
-            INNER JOIN {$wpdb->prefix}mepr_transaction_meta AS is_gift_meta 
-                ON gifter_txn.id = is_gift_meta.transaction_id 
-                AND is_gift_meta.meta_key = '_is_gift_complete'
-                AND is_gift_meta.meta_value = '1'
+            -- Find transactions that have gift-related meta keys
+            INNER JOIN {$wpdb->prefix}mepr_transaction_meta AS gift_meta 
+                ON gifter_txn.id = gift_meta.transaction_id 
+                AND gift_meta.meta_key IN ('_gift_status', '_gifter_id', '_gift_coupon_id')
             
             INNER JOIN {$wpdb->users} AS gifter 
                 ON gifter_txn.user_id = gifter.ID
@@ -164,16 +164,19 @@ class MPGR_Gift_Report {
             INNER JOIN {$wpdb->posts} AS gift_product 
                 ON gifter_txn.product_id = gift_product.ID
             
-            INNER JOIN {$wpdb->prefix}mepr_transaction_meta AS coupon_meta 
+            -- Get coupon information
+            LEFT JOIN {$wpdb->prefix}mepr_transaction_meta AS coupon_meta 
                 ON gifter_txn.id = coupon_meta.transaction_id 
                 AND coupon_meta.meta_key = '_gift_coupon_id'
-            INNER JOIN {$wpdb->posts} AS gift_coupon 
+            LEFT JOIN {$wpdb->posts} AS gift_coupon 
                 ON coupon_meta.meta_value = gift_coupon.ID
             
+            -- Get gift status
             LEFT JOIN {$wpdb->prefix}mepr_transaction_meta AS gift_status 
                 ON gifter_txn.id = gift_status.transaction_id 
                 AND gift_status.meta_key = '_gift_status'
             
+            -- Find redemption transaction for claimed gifts
             LEFT JOIN {$wpdb->prefix}mepr_transactions AS redemption_txn 
                 ON gift_coupon.ID = redemption_txn.coupon_id 
                 AND redemption_txn.status = 'complete'
@@ -190,7 +193,14 @@ class MPGR_Gift_Report {
                 AND recipient_lname.meta_key = 'last_name'
 
         WHERE 
-            {$where_clause}
+            gifter_txn.status IN ('complete', 'confirmed', 'refunded')
+            AND (
+                (gift_meta.meta_key = '_gift_status' AND gift_meta.meta_value IN ('unclaimed', 'claimed'))
+                OR gift_meta.meta_key IN ('_gifter_id', '_gift_coupon_id')
+            )
+
+        GROUP BY 
+            gifter_txn.id, gifter_txn.product_id
 
         ORDER BY 
             gifter_txn.created_at DESC
@@ -228,6 +238,7 @@ class MPGR_Gift_Report {
             'Transaction Number',
             'Amount',
             'Total',
+            'Transaction Status',
             'Gifter User ID',
             'Gifter Username',
             'Gifter Email',
