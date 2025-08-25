@@ -6,6 +6,7 @@ Use this section to tell people about which versions of your project are current
 
 | Version | Supported          |
 | ------- | ------------------ |
+| 1.1.x   | :white_check_mark: |
 | 1.0.x   | :white_check_mark: |
 
 ## Reporting a Vulnerability
@@ -54,9 +55,11 @@ This plugin implements several security measures:
 
 - **Nonce verification** for all forms and AJAX requests
 - **Capability checks** to ensure only authorized users can access reports
-- **Input sanitization** for all user inputs
+- **Enhanced input sanitization** for all user inputs (email, dates, integers)
 - **Prepared statements** for all database queries
 - **Admin-only access** to sensitive functionality
+- **XSS protection** with proper output escaping
+- **SQL injection prevention** with improved query preparation
 
 ## Updates
 

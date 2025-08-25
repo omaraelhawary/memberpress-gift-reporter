@@ -70,8 +70,11 @@ memberpress-gift-reporter/
 1. **Install the plugin** in a test WordPress environment
 2. **Create test gift transactions** using MemberPress Gifting
 3. **Verify report generation** works correctly
-4. **Test CSV export** functionality
-5. **Check admin interface** responsiveness
+4. **Test advanced filtering system** with all 8 filters
+5. **Test CSV export** functionality (filtered and unfiltered)
+6. **Check admin interface** responsiveness and mobile optimization
+7. **Test smart no-data detection** with various filter combinations
+8. **Verify filter clearing** functionality works correctly
 
 ### Code Quality
 
@@ -109,10 +112,13 @@ composer run phpcbf
 
 Use clear, descriptive commit messages:
 
-- `Add feature: CSV export filtering`
+- `Add feature: advanced filtering system with 8 filters`
+- `Add feature: smart no-data detection`
 - `Fix bug: incorrect date formatting in reports`
+- `Update UI: modern responsive design with grid layout`
 - `Update docs: add installation troubleshooting`
 - `Refactor: improve database query performance`
+- `Enhance UX: mobile optimization and touch-friendly interface`
 
 ## 📤 Submitting Changes
 

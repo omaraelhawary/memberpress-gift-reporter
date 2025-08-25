@@ -5,10 +5,17 @@ A WordPress plugin that generates comprehensive reports for the MemberPress Gift
 ## 🎁 Features
 
 - **Complete Gift Tracking**: Track gift purchases, redemptions, and status
+- **Advanced Filtering System**: 8 powerful filters for precise data analysis
+  - Date range filtering (purchase and redemption dates)
+  - Gift status filtering (claimed/unclaimed)
+  - Product/membership filtering
+  - Email filtering (gifter and recipient)
+- **Smart Data Detection**: Intelligent messaging for no-data scenarios
 - **Comprehensive Reports**: View detailed gift transaction data
-- **CSV Export**: Download reports in spreadsheet format
+- **Filtered CSV Export**: Export only filtered data, not all data
 - **REST API**: Programmatic access to report data
-- **Admin Interface**: Clean, user-friendly admin dashboard
+- **Modern Admin Interface**: Clean, responsive, and user-friendly dashboard
+- **Mobile Optimized**: Touch-friendly interface for all devices
 - **Security**: Admin-only access with proper permissions
 
 ## 📋 Requirements
@@ -40,8 +47,15 @@ git clone https://github.com/omaraelhawary/memberpress-gift-reporter.git
 ### Admin Dashboard
 
 1. Go to **WordPress Admin** → **MemberPress** → **Gift Report**
-2. View summary statistics and detailed gift data
-3. Click **Download CSV Report** to export data
+2. Use the advanced filtering system to narrow down your data:
+   - **Date Filters**: Filter by purchase date range
+   - **Status Filters**: Filter by claimed/unclaimed status
+   - **Product Filters**: Filter by specific memberships
+   - **Email Filters**: Search by gifter or recipient email
+   - **Redemption Filters**: Filter by when gifts were claimed
+3. View summary statistics and detailed gift data
+4. Click **Download CSV Report** to export filtered data
+5. Use **Clear Filters** to reset all filters quickly
 
 ### REST API
 
@@ -78,10 +92,17 @@ The plugin tracks and reports on:
 - Gift status (claimed/unclaimed/invalid)
 
 ### Summary Statistics
-- Total gifts purchased
-- Claimed vs unclaimed gifts
-- Claim rate percentage
-- Total revenue generated
+- Total gifts purchased (filtered)
+- Claimed vs unclaimed gifts (filtered)
+- Claim rate percentage (filtered)
+- Total revenue generated (filtered)
+
+### Advanced Filtering
+- **Date Range Filtering**: Filter by purchase or redemption dates
+- **Status Filtering**: Filter by gift status (claimed/unclaimed)
+- **Product Filtering**: Filter by specific memberships
+- **Email Filtering**: Search by gifter or recipient email addresses
+- **Combined Filtering**: Use multiple filters simultaneously for precise data analysis
 
 ## 🔧 Configuration
 
@@ -151,6 +172,14 @@ The plugin uses optimized SQL queries to join:
 3. **Check Conflicts**: Disable other plugins to test
 
 ## 📝 Changelog
+
+### Version 1.1.0
+- **Major Update**: Advanced filtering system with 8 filters
+- **UI/UX Overhaul**: Modern, responsive interface design
+- **Smart Data Detection**: Intelligent no-data messaging
+- **Filtered Export**: Export only filtered data
+- **Mobile Optimization**: Touch-friendly interface
+- **Enhanced Security**: Improved input validation
 
 ### Version 1.0.0
 - Initial release

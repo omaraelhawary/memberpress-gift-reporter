@@ -6,9 +6,9 @@ This document provides recommendations for setting up your GitHub repository for
 
 ### 1. Repository Information
 - **Name**: `memberpress-gift-reporter`
-- **Description**: A WordPress plugin that generates comprehensive reports for the MemberPress Gifting add-on
+- **Description**: A WordPress plugin that generates comprehensive reports for the MemberPress Gifting add-on with advanced filtering
 - **Visibility**: Public
-- **Topics**: `wordpress`, `wordpress-plugin`, `memberpress`, `gifting`, `reports`, `php`, `wordpress-admin`
+- **Topics**: `wordpress`, `wordpress-plugin`, `memberpress`, `gifting`, `reports`, `php`, `wordpress-admin`, `filtering`, `analytics`
 
 ### 2. Repository Features
 
@@ -55,14 +55,14 @@ A PR template is already created to guide contributors.
 
 1. **Tag the release**:
    ```bash
-   git tag -a v1.0.0 -m "Initial release"
-   git push origin v1.0.0
+   git tag -a v1.1.0 -m "Major update with advanced filtering"
+   git push origin v1.1.0
    ```
 
 2. **Create GitHub Release**:
    - Go to Releases → Create a new release
-   - Tag: `v1.0.0`
-   - Title: `v1.0.0 - Initial Release`
+   - Tag: `v1.1.0`
+   - Title: `v1.1.0 - Advanced Filtering System`
    - Description: Copy from CHANGELOG.md
    - Upload the plugin ZIP file
 
