@@ -5,9 +5,9 @@
  * @package MemberPressGiftReporter
  */
 
-// Prevent direct access
-if (!defined('ABSPATH')) {
-    exit;
+// Prevent direct access.
+if ( ! defined( 'ABSPATH' ) ) {
+	exit;
 }
 
 /**
@@ -18,46 +18,46 @@ class MPGR_Gift_Report {
     /**
      * Constructor
      */
-    public function __construct() {
-        // Handle AJAX requests
-        add_action('wp_ajax_mpgr_export_csv', array($this, 'ajax_export_csv'));
-        add_action('wp_ajax_nopriv_mpgr_export_csv', array($this, 'ajax_export_csv'));
-        
-        // Add REST API endpoint
-        add_action('rest_api_init', array($this, 'register_rest_routes'));
-    }
+	public function __construct() {
+		// Handle AJAX requests.
+		add_action( 'wp_ajax_mpgr_export_csv', array( $this, 'ajax_export_csv' ) );
+		add_action( 'wp_ajax_nopriv_mpgr_export_csv', array( $this, 'ajax_export_csv' ) );
+
+		// Add REST API endpoint.
+		add_action( 'rest_api_init', array( $this, 'register_rest_routes' ) );
+	}
     
 
     
     /**
      * AJAX export handler
      */
-    public function ajax_export_csv() {
-        // Verify nonce and permissions
-        if (!check_ajax_referer('mpgr_export_csv', 'nonce', false) || !current_user_can('manage_options')) {
-            wp_die(__('Access denied', 'memberpress-gift-reporter'));
-        }
-        
-        $filters = array();
-        if (!empty($_POST['start_date'])) {
-            $filters['start_date'] = sanitize_text_field($_POST['start_date']);
-        }
-        if (!empty($_POST['end_date'])) {
-            $filters['end_date'] = sanitize_text_field($_POST['end_date']);
-        }
-        if (!empty($_POST['gift_status'])) {
-            $filters['gift_status'] = sanitize_text_field($_POST['gift_status']);
-        }
-        if (!empty($_POST['gifter_email'])) {
-            $filters['gifter_email'] = sanitize_text_field($_POST['gifter_email']);
-        }
-        if (!empty($_POST['product_id'])) {
-            $filters['product_id'] = intval($_POST['product_id']);
-        }
-        
-        $this->generate_report($filters);
-        $this->export_csv();
-    }
+	public function ajax_export_csv() {
+		// Verify nonce and permissions.
+		if ( ! check_ajax_referer( 'mpgr_export_csv', 'nonce', false ) || ! current_user_can( 'manage_options' ) ) {
+			wp_die( __( 'Access denied', 'memberpress-gift-reporter' ) );
+		}
+
+		$filters = array();
+		if ( ! empty( $_POST['start_date'] ) ) {
+			$filters['start_date'] = sanitize_text_field( $_POST['start_date'] );
+		}
+		if ( ! empty( $_POST['end_date'] ) ) {
+			$filters['end_date'] = sanitize_text_field( $_POST['end_date'] );
+		}
+		if ( ! empty( $_POST['gift_status'] ) ) {
+			$filters['gift_status'] = sanitize_text_field( $_POST['gift_status'] );
+		}
+		if ( ! empty( $_POST['gifter_email'] ) ) {
+			$filters['gifter_email'] = sanitize_text_field( $_POST['gifter_email'] );
+		}
+		if ( ! empty( $_POST['product_id'] ) ) {
+			$filters['product_id'] = intval( $_POST['product_id'] );
+		}
+
+		$this->generate_report( $filters );
+		$this->export_csv();
+	}
     
     /**
      * Register REST API routes

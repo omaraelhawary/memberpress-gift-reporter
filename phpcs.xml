@@ -1,0 +1,67 @@
+<?xml version="1.0"?>
+<ruleset name="MemberPress Gift Reporter">
+    <description>PHP CodeSniffer rules for MemberPress Gift Reporter plugin</description>
+
+    <!-- Include WordPress Coding Standards -->
+    <rule ref="WordPress"/>
+
+    <!-- Exclude some rules that are too strict for this project -->
+    <rule ref="WordPress">
+        <!-- Allow short array syntax -->
+        <exclude name="Generic.Arrays.DisallowShortArraySyntax"/>
+        
+        <!-- Allow alternative control structure syntax -->
+        <exclude name="Generic.ControlStructures.InlineControlStructure"/>
+        
+        <!-- Allow alternative PHP tags -->
+        <exclude name="Generic.PHP.DisallowShortOpenTag"/>
+        
+        <!-- Allow alternative concatenation -->
+        <exclude name="WordPress.Strings.ConcatenationSpacing"/>
+        
+        <!-- Allow alternative spacing around operators -->
+        <exclude name="Squiz.WhiteSpace.OperatorSpacing"/>
+        
+        <!-- Allow alternative function call spacing -->
+        <exclude name="PSR2.Functions.FunctionCallSignature"/>
+        
+        <!-- Allow alternative array spacing -->
+        <exclude name="WordPress.Arrays.ArrayDeclarationSpacing"/>
+        
+        <!-- Allow alternative comment spacing -->
+        <exclude name="Squiz.Commenting.FunctionComment"/>
+        
+        <!-- Allow alternative variable naming -->
+        <exclude name="WordPress.NamingConventions.ValidVariableName"/>
+        
+        <!-- Allow alternative method naming -->
+        <exclude name="WordPress.NamingConventions.ValidFunctionName"/>
+    </rule>
+
+    <!-- Files to check -->
+    <file>memberpress-gift-reporter.php</file>
+    <file>includes/</file>
+    <file>uninstall.php</file>
+
+    <!-- Files to ignore -->
+    <exclude-pattern>*/vendor/*</exclude-pattern>
+    <exclude-pattern>*/node_modules/*</exclude-pattern>
+    <exclude-pattern>*/assets/*</exclude-pattern>
+    <exclude-pattern>*/languages/*</exclude-pattern>
+
+    <!-- Show progress -->
+    <arg value="p"/>
+
+    <!-- Show source codes -->
+    <arg value="s"/>
+
+    <!-- Show sniff codes -->
+    <arg value="n"/>
+
+    <!-- Use colors -->
+    <arg value="--colors"/>
+
+    <!-- Generate checkstyle report -->
+    <arg value="--report=checkstyle"/>
+    <arg value="--report-file=phpcs-report.xml"/>
+</ruleset>

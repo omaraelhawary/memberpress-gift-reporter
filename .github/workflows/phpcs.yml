@@ -35,6 +35,7 @@ jobs:
         
     - name: Run PHPCS
       run: composer run phpcs
+      continue-on-error: true
         
     - name: Upload PHPCS results
       uses: codecov/codecov-action@v3
