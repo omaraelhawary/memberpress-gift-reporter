@@ -383,7 +383,7 @@ class MPGR_Gift_Report {
         
         // Enqueue styles only on admin pages
         if (is_admin()) {
-            wp_enqueue_style('mpgr-styles', MPGR_PLUGIN_URL . 'assets/css/style.css', array(), MPGR_VERSION);
+            wp_enqueue_style('mpgr-styles', MPGR_PLUGIN_URL . 'assets/css/style.min.css', array(), MPGR_VERSION);
         }
         
         echo '<div class="mpgr-gift-report">';
@@ -462,7 +462,7 @@ class MPGR_Gift_Report {
         
         // Add JavaScript for export only on admin pages
         if (is_admin()) {
-            wp_enqueue_script('mpgr-script', MPGR_PLUGIN_URL . 'assets/js/script.js', array('jquery'), MPGR_VERSION, true);
+            wp_enqueue_script('mpgr-script', MPGR_PLUGIN_URL . 'assets/js/script.min.js', array('jquery'), MPGR_VERSION, true);
             wp_localize_script('mpgr-script', 'mpgr_ajax', array(
                 'ajax_url' => admin_url('admin-ajax.php'),
                 'nonce' => wp_create_nonce('mpgr_export_csv')
