@@ -31,15 +31,10 @@ jobs:
           ${{ runner.os }}-php-
           
     - name: Install dependencies
-      run: |
-        composer global require squizlabs/php_codesniffer
-        composer global require wp-coding-standards/wpcs
-        composer global require dealerdirect/phpcodesniffer-composer-installer
-        phpcs --config-set installed_paths ~/.composer/vendor/wp-coding-standards/wpcs
+      run: composer install --prefer-dist --no-progress
         
     - name: Run PHPCS
-      run: |
-        phpcs --standard=WordPress --extensions=php --ignore=node_modules,vendor --report=checkstyle --report-file=phpcs-report.xml .
+      run: composer run phpcs
         
     - name: Upload PHPCS results
       uses: codecov/codecov-action@v3
