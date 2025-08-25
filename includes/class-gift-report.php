@@ -572,7 +572,22 @@ class MPGR_Gift_Report {
         echo '</div>';
         
         echo '<div class="mpgr-summary">';
-        echo '<h3>📊 Summary Statistics</h3>';
+        
+        // Determine if filters are applied
+        $has_filters = !empty($filters['date_from']) || 
+                      !empty($filters['date_to']) || 
+                      !empty($filters['gift_status']) || 
+                      !empty($filters['product']) || 
+                      !empty($filters['gifter_email']) || 
+                      !empty($filters['recipient_email']) || 
+                      !empty($filters['redemption_from']) || 
+                      !empty($filters['redemption_to']);
+        
+        if ($has_filters) {
+            echo '<h3>📊 Summary (Filtered)</h3>';
+        } else {
+            echo '<h3>📊 All-time Summary</h3>';
+        }
         echo '<p><strong>Total Gifts:</strong> ' . $summary['total_gifts'] . '</p>';
         echo '<p><strong>Claimed:</strong> ' . $summary['claimed_gifts'] . '</p>';
         echo '<p><strong>Unclaimed:</strong> ' . $summary['unclaimed_gifts'] . '</p>';
