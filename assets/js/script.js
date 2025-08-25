@@ -31,6 +31,36 @@
         if (dateTo) {
             formData.append('date_to', dateTo);
         }
+        
+        var giftStatus = $('#gift_status').val();
+        if (giftStatus) {
+            formData.append('gift_status', giftStatus);
+        }
+        
+        var product = $('#product').val();
+        if (product) {
+            formData.append('product', product);
+        }
+        
+        var gifterEmail = $('#gifter_email').val();
+        if (gifterEmail) {
+            formData.append('gifter_email', gifterEmail);
+        }
+        
+        var recipientEmail = $('#recipient_email').val();
+        if (recipientEmail) {
+            formData.append('recipient_email', recipientEmail);
+        }
+        
+        var redemptionFrom = $('#redemption_from').val();
+        if (redemptionFrom) {
+            formData.append('redemption_from', redemptionFrom);
+        }
+        
+        var redemptionTo = $('#redemption_to').val();
+        if (redemptionTo) {
+            formData.append('redemption_to', redemptionTo);
+        }
 
         // Make AJAX request
         $.ajax({
