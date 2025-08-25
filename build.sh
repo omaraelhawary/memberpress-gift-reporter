@@ -62,7 +62,15 @@ rsync -av --progress "${PLUGIN_DIR}/" "${BUILD_DIR}/${PLUGIN_NAME}/" \
     --exclude='build.sh' \
     --exclude='build/' \
     --exclude='BUILD.md' \
-    --exclude='*.zip'
+    --exclude='*.zip' \
+    --exclude='CHANGELOG.md' \
+    --exclude='CONTRIBUTING.md' \
+    --exclude='GITHUB_SETUP.md' \
+    --exclude='INSTALL.md' \
+    --exclude='SECURITY.md' \
+    --exclude='composer.json' \
+    --exclude='package.json' \
+    --exclude='phpcs.xml'
 
 # Create the zip file
 echo -e "${YELLOW}📦 Creating zip file...${NC}"

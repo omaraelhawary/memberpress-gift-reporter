@@ -10,6 +10,18 @@ build/
 BUILD.md
 *.zip
 
+# Documentation files (not needed for customers)
+CHANGELOG.md
+CONTRIBUTING.md
+GITHUB_SETUP.md
+INSTALL.md
+SECURITY.md
+
+# Development configuration files
+composer.json
+package.json
+phpcs.xml
+
 # IDE and Editor files
 .vscode/
 .idea/

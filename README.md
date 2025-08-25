@@ -18,6 +18,13 @@ A WordPress plugin that generates comprehensive reports for the MemberPress Gift
 - **Mobile Optimized**: Touch-friendly interface for all devices
 - **Security**: Admin-only access with proper permissions
 
+## 📸 Screenshots
+
+### Admin Dashboard
+![MemberPress Gift Report Dashboard](screenshots/dashboard.png)
+
+*The MemberPress Gift Report dashboard showing advanced filtering options, summary statistics, and detailed gift transaction data with export functionality.*
+
 ## 📋 Requirements
 
 - WordPress 5.0 or higher
