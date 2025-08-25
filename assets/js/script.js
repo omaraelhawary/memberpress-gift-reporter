@@ -118,6 +118,24 @@
     }
 
     /**
+     * Clear all filters function
+     */
+    window.clearAllFilters = function() {
+        // Clear all filter inputs
+        $('#date_from').val('');
+        $('#date_to').val('');
+        $('#gift_status').val('');
+        $('#product').val('');
+        $('#gifter_email').val('');
+        $('#recipient_email').val('');
+        $('#redemption_from').val('');
+        $('#redemption_to').val('');
+        
+        // Submit the form to refresh the page
+        $('form').submit();
+    };
+
+    /**
      * Document ready
      */
     $(document).ready(function() {

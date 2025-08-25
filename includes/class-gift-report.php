@@ -629,21 +629,44 @@ class MPGR_Gift_Report {
             echo '</tbody>';
             echo '</table>';
         } else {
-            echo '<div class="mpgr-no-data">';
-            echo '<h3>No Gift Transactions Found</h3>';
-            echo '<p>We couldn\'t find any gift transactions in your database. This could be because:</p>';
-            echo '<ul>';
-            echo '<li>MemberPress Gifting add-on is not activated</li>';
-            echo '<li>No gift purchases have been completed yet</li>';
-            echo '<li>Database permissions need to be configured</li>';
-            echo '<li>Gift transactions are in a different status</li>';
-            echo '</ul>';
-            echo '<div class="mpgr-help-links">';
-            echo '<a href="https://memberpress.com/gifting/" target="_blank">Learn About Gifting</a>';
-            echo '<a href="' . admin_url('admin.php?page=memberpress-addons') . '">Check Add-ons</a>';
-            echo '<a href="' . admin_url('admin.php?page=memberpress-trans') . '">View All Transactions</a>';
-            echo '</div>';
-            echo '</div>';
+            // Check if there are any gift transactions at all (without filters)
+            $all_gifts = $this->generate_report(0, 0, array());
+            
+            if (!empty($all_gifts)) {
+                // There are gift transactions, but filters are too restrictive
+                echo '<div class="mpgr-no-data mpgr-filtered-no-data">';
+                echo '<h3>No Results Match Your Filters</h3>';
+                echo '<p>We found gift transactions in your database, but none match your current filter criteria. Try:</p>';
+                echo '<ul>';
+                echo '<li>Broadening your date range</li>';
+                echo '<li>Selecting "All Statuses" instead of a specific status</li>';
+                echo '<li>Choosing "All Memberships" instead of a specific product</li>';
+                echo '<li>Clearing email filters if they\'re too specific</li>';
+                echo '<li>Adjusting redemption date filters</li>';
+                echo '</ul>';
+                echo '<div class="mpgr-help-links">';
+                echo '<a href="#" onclick="clearAllFilters()" class="mpgr-clear-filters-btn">Clear All Filters</a>';
+                echo '<a href="' . admin_url('admin.php?page=memberpress-trans') . '">View All Transactions</a>';
+                echo '</div>';
+                echo '</div>';
+            } else {
+                // No gift transactions exist at all
+                echo '<div class="mpgr-no-data">';
+                echo '<h3>No Gift Transactions Found</h3>';
+                echo '<p>We couldn\'t find any gift transactions in your database. This could be because:</p>';
+                echo '<ul>';
+                echo '<li>MemberPress Gifting add-on is not activated</li>';
+                echo '<li>No gift purchases have been completed yet</li>';
+                echo '<li>Database permissions need to be configured</li>';
+                echo '<li>Gift transactions are in a different status</li>';
+                echo '</ul>';
+                echo '<div class="mpgr-help-links">';
+                echo '<a href="https://memberpress.com/gifting/" target="_blank">Learn About Gifting</a>';
+                echo '<a href="' . admin_url('admin.php?page=memberpress-addons') . '">Check Add-ons</a>';
+                echo '<a href="' . admin_url('admin.php?page=memberpress-trans') . '">View All Transactions</a>';
+                echo '</div>';
+                echo '</div>';
+            }
         }
         
         echo '</div>';

@@ -329,6 +329,50 @@
     box-shadow: 0 2px 8px rgba(0, 115, 170, 0.3);
 }
 
+/* Filtered no-data state */
+.mpgr-filtered-no-data {
+    background: linear-gradient(135deg, #fff3cd 0%, #ffeaa7 100%);
+    border-color: #ffc107;
+}
+
+.mpgr-filtered-no-data::before {
+    content: "🔍";
+    color: #856404;
+}
+
+.mpgr-filtered-no-data h3 {
+    color: #856404;
+}
+
+.mpgr-filtered-no-data p {
+    color: #856404;
+}
+
+.mpgr-filtered-no-data ul {
+    background: white;
+    border-left-color: #ffc107;
+}
+
+.mpgr-filtered-no-data li {
+    color: #856404;
+}
+
+.mpgr-filtered-no-data li::before {
+    color: #ffc107;
+}
+
+.mpgr-clear-filters-btn {
+    background: #ffc107 !important;
+    color: #212529 !important;
+    border-color: #ffc107 !important;
+}
+
+.mpgr-clear-filters-btn:hover {
+    background: #e0a800 !important;
+    border-color: #e0a800 !important;
+    color: #212529 !important;
+}
+
 /* Responsive design */
 @media (max-width: 768px) {
     .mpgr-gift-report {
