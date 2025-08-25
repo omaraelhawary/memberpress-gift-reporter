@@ -16,6 +16,11 @@ if ( ! defined( 'ABSPATH' ) ) {
 class MPGR_Gift_Report {
     
     /**
+     * Report data property
+     */
+    private $report_data = array();
+    
+    /**
      * Constructor
      */
 	public function __construct() {
@@ -38,8 +43,17 @@ class MPGR_Gift_Report {
 			wp_die( __( 'Access denied', 'memberpress-gift-reporter' ) );
 		}
 
-		$this->generate_report();
-		$this->export_csv();
+		// Get filter parameters
+		$filters = array();
+		if (!empty($_POST['date_from'])) {
+			$filters['date_from'] = sanitize_text_field($_POST['date_from']);
+		}
+		if (!empty($_POST['date_to'])) {
+			$filters['date_to'] = sanitize_text_field($_POST['date_to']);
+		}
+
+		$this->generate_report(0, 0, $filters);
+		$this->export_csv('memberpress_gift_report.csv', $filters);
 	}
     
     /**
@@ -91,13 +105,37 @@ class MPGR_Gift_Report {
     /**
      * Generate the gift report
      */
-    public function generate_report($limit = 1000, $offset = 0) {
+    public function generate_report($limit = 1000, $offset = 0, $filters = array()) {
         global $wpdb;
         
         // Add pagination
         $limit_clause = '';
         if ($limit > 0) {
             $limit_clause = $wpdb->prepare(' LIMIT %d OFFSET %d', $limit, $offset);
+        }
+        
+        // Build WHERE clause for filters
+        $where_conditions = array();
+        $where_conditions[] = "gifter_txn.status IN ('complete', 'confirmed', 'refunded')";
+        $where_conditions[] = "(
+            (gift_meta.meta_key = '_gift_status' AND gift_meta.meta_value IN ('unclaimed', 'claimed'))
+            OR gift_meta.meta_key IN ('_gifter_id', '_gift_coupon_id')
+        )";
+        
+        // Date From filter
+        if (!empty($filters['date_from'])) {
+            $date_from = sanitize_text_field($filters['date_from']);
+            // Convert date to proper format and add time to make it start of day
+            $date_from_formatted = date('Y-m-d 00:00:00', strtotime($date_from));
+            $where_conditions[] = $wpdb->prepare("gifter_txn.created_at >= %s", $date_from_formatted);
+        }
+        
+        // Date To filter
+        if (!empty($filters['date_to'])) {
+            $date_to = sanitize_text_field($filters['date_to']);
+            // Convert date to proper format and add time to make it end of day
+            $date_to_formatted = date('Y-m-d 23:59:59', strtotime($date_to));
+            $where_conditions[] = $wpdb->prepare("gifter_txn.created_at <= %s", $date_to_formatted);
         }
         
         // Use a more inclusive approach to find all gift transactions
@@ -193,11 +231,7 @@ class MPGR_Gift_Report {
                 AND recipient_lname.meta_key = 'last_name'
 
         WHERE 
-            gifter_txn.status IN ('complete', 'confirmed', 'refunded')
-            AND (
-                (gift_meta.meta_key = '_gift_status' AND gift_meta.meta_value IN ('unclaimed', 'claimed'))
-                OR gift_meta.meta_key IN ('_gifter_id', '_gift_coupon_id')
-            )
+            " . implode(' AND ', $where_conditions) . "
 
         GROUP BY 
             gifter_txn.id, gifter_txn.product_id
@@ -215,7 +249,7 @@ class MPGR_Gift_Report {
     /**
      * Export report to CSV with streaming for large datasets
      */
-    public function export_csv($filename = 'memberpress_gift_report.csv') {
+    public function export_csv($filename = 'memberpress_gift_report.csv', $filters = array()) {
         global $wpdb;
         
         // Set headers for CSV download
@@ -268,7 +302,7 @@ class MPGR_Gift_Report {
         $offset = 0;
         
         do {
-            $data = $this->generate_report($chunk_size, $offset);
+            $data = $this->generate_report($chunk_size, $offset, $filters);
             
             if (!empty($data)) {
                 foreach ($data as $row) {
@@ -286,9 +320,9 @@ class MPGR_Gift_Report {
     /**
      * Get summary statistics
      */
-    public function get_summary() {
+    public function get_summary($filters = array()) {
         if (empty($this->report_data)) {
-            $this->generate_report();
+            $this->generate_report(0, 0, $filters);
         }
         
         $total_gifts = count($this->report_data);
@@ -317,12 +351,12 @@ class MPGR_Gift_Report {
     /**
      * Display the report
      */
-    public function display_report() {
+    public function display_report($filters = array()) {
         if (empty($this->report_data)) {
-            $this->generate_report();
+            $this->generate_report(0, 0, $filters);
         }
         
-        $summary = $this->get_summary();
+        $summary = $this->get_summary($filters);
         
         // Enqueue styles only on admin pages
         if (is_admin()) {
@@ -331,6 +365,49 @@ class MPGR_Gift_Report {
         
         echo '<div class="mpgr-gift-report">';
         echo '<h2>🎁 MemberPress Gift Report</h2>';
+        
+        // Filter form
+        echo '<div class="mpgr-filters">';
+        echo '<h3>🔍 Filters</h3>';
+        
+        // Show active filters
+        $active_filters = array();
+        if (!empty($filters['date_from'])) {
+            $active_filters[] = 'Date From: ' . esc_html($filters['date_from']);
+        }
+        if (!empty($filters['date_to'])) {
+            $active_filters[] = 'Date To: ' . esc_html($filters['date_to']);
+        }
+        
+        if (!empty($active_filters)) {
+            echo '<div class="mpgr-active-filters">';
+            echo '<strong>Active Filters:</strong> ' . implode(', ', $active_filters);
+            echo '</div>';
+        }
+        
+
+        
+        echo '<form method="GET" action="">';
+        echo '<input type="hidden" name="page" value="memberpress-gift-report">';
+        
+        // Date From filter
+        echo '<div class="mpgr-filter-group">';
+        echo '<label for="date_from">Date From:</label>';
+        echo '<input type="date" id="date_from" name="date_from" value="' . esc_attr($filters['date_from'] ?? '') . '">';
+        echo '</div>';
+        
+        // Date To filter
+        echo '<div class="mpgr-filter-group">';
+        echo '<label for="date_to">Date To:</label>';
+        echo '<input type="date" id="date_to" name="date_to" value="' . esc_attr($filters['date_to'] ?? '') . '">';
+        echo '</div>';
+        
+        echo '<div class="mpgr-filter-actions">';
+        echo '<button type="submit" class="button button-primary">Apply Filters</button>';
+        echo '<a href="' . admin_url('admin.php?page=memberpress-gift-report') . '" class="button">Clear Filters</a>';
+        echo '</div>';
+        echo '</form>';
+        echo '</div>';
         
         echo '<div class="mpgr-summary">';
         echo '<h3>📊 Summary Statistics</h3>';

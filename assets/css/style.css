@@ -22,6 +22,72 @@
     font-size: 24px;
 }
 
+/* Filter styles */
+.mpgr-filters {
+    background: #f8f9fa;
+    padding: 20px;
+    margin: 20px 0;
+    border-radius: 5px;
+    border: 1px solid #dee2e6;
+}
+
+.mpgr-filters h3 {
+    margin-top: 0;
+    color: #495057;
+    font-size: 16px;
+    margin-bottom: 15px;
+}
+
+.mpgr-filter-group {
+    display: inline-block;
+    margin-right: 20px;
+    margin-bottom: 10px;
+}
+
+.mpgr-filter-group label {
+    display: block;
+    font-weight: 600;
+    color: #495057;
+    margin-bottom: 5px;
+    font-size: 14px;
+}
+
+.mpgr-filter-group input,
+.mpgr-filter-group select {
+    padding: 8px 12px;
+    border: 1px solid #ced4da;
+    border-radius: 4px;
+    font-size: 14px;
+    min-width: 150px;
+}
+
+.mpgr-filter-group input:focus,
+.mpgr-filter-group select:focus {
+    outline: none;
+    border-color: #0073aa;
+    box-shadow: 0 0 0 2px rgba(0, 115, 170, 0.25);
+}
+
+.mpgr-filter-actions {
+    margin-top: 15px;
+    padding-top: 15px;
+    border-top: 1px solid #dee2e6;
+}
+
+.mpgr-filter-actions .button {
+    margin-right: 10px;
+}
+
+.mpgr-active-filters {
+    background: #e3f2fd;
+    border: 1px solid #2196f3;
+    color: #1976d2;
+    padding: 10px 15px;
+    border-radius: 4px;
+    margin-bottom: 15px;
+    font-size: 14px;
+}
+
 .mpgr-summary {
     background: #f5f5f5;
     padding: 20px;

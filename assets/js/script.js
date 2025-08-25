@@ -21,7 +21,16 @@
         formData.append('action', 'mpgr_export_csv');
         formData.append('nonce', mpgr_ajax.nonce);
 
-        // No filter parameters needed - export all data
+        // Add filter parameters
+        var dateFrom = $('#date_from').val();
+        if (dateFrom) {
+            formData.append('date_from', dateFrom);
+        }
+        
+        var dateTo = $('#date_to').val();
+        if (dateTo) {
+            formData.append('date_to', dateTo);
+        }
 
         // Make AJAX request
         $.ajax({

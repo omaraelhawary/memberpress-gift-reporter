@@ -94,9 +94,18 @@ class MPGR_Admin {
 			return;
 		}
 
+		// Get filter parameters
+		$filters = array();
+		if (!empty($_GET['date_from'])) {
+			$filters['date_from'] = sanitize_text_field($_GET['date_from']);
+		}
+		if (!empty($_GET['date_to'])) {
+			$filters['date_to'] = sanitize_text_field($_GET['date_to']);
+		}
+
 		// Display report.
 		$gift_report = new MPGR_Gift_Report();
-		$gift_report->display_report();
+		$gift_report->display_report($filters);
 
 		echo '</div>';
 	}
