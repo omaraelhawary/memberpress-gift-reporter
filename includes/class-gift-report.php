@@ -26,7 +26,6 @@ class MPGR_Gift_Report {
 	public function __construct() {
 		// Handle AJAX requests.
 		add_action( 'wp_ajax_mpgr_export_csv', array( $this, 'ajax_export_csv' ) );
-		add_action( 'wp_ajax_nopriv_mpgr_export_csv', array( $this, 'ajax_export_csv' ) );
 
 		// Add REST API endpoint.
 		add_action( 'rest_api_init', array( $this, 'register_rest_routes' ) );
@@ -39,7 +38,7 @@ class MPGR_Gift_Report {
      */
 	public function ajax_export_csv() {
 		// Verify nonce and permissions.
-		if ( ! check_ajax_referer( 'mpgr_export_csv', 'nonce', false ) || ! current_user_can( 'manage_options' ) ) {
+		if ( ! wp_verify_nonce( $_POST['nonce'], 'mpgr_export_csv' ) || ! current_user_can( 'manage_options' ) ) {
 			wp_die( __( 'Access denied', 'memberpress-gift-reporter' ) );
 		}
 
@@ -94,14 +93,19 @@ class MPGR_Gift_Report {
     /**
      * REST API permission check
      */
-    public function rest_permission_check() {
-        return current_user_can('manage_options') && check_ajax_referer('mpgr_rest_nonce', 'nonce', false);
+    public function rest_permission_check($request) {
+        return current_user_can('manage_options') && wp_verify_nonce($request->get_param('nonce'), 'mpgr_rest_nonce');
     }
     
     /**
      * REST API get report
      */
     public function rest_get_report($request) {
+        // Verify nonce
+        if (!wp_verify_nonce($request->get_param('nonce'), 'mpgr_rest_nonce')) {
+            return new WP_Error('invalid_nonce', 'Invalid nonce', array('status' => 403));
+        }
+        
         $data = $this->generate_report();
         $summary = $this->get_summary();
         
@@ -116,6 +120,11 @@ class MPGR_Gift_Report {
      * REST API export CSV
      */
     public function rest_export_csv($request) {
+        // Verify nonce
+        if (!wp_verify_nonce($request->get_param('nonce'), 'mpgr_rest_nonce')) {
+            return new WP_Error('invalid_nonce', 'Invalid nonce', array('status' => 403));
+        }
+        
         $this->generate_report();
         $this->export_csv();
     }
@@ -309,6 +318,12 @@ class MPGR_Gift_Report {
      */
     public function export_csv($filename = 'memberpress_gift_report.csv', $filters = array()) {
         global $wpdb;
+        
+        // Sanitize filename to prevent directory traversal
+        $filename = sanitize_file_name($filename);
+        if (empty($filename) || strpos($filename, '.csv') === false) {
+            $filename = 'memberpress_gift_report.csv';
+        }
         
         // Set headers for CSV download
         header('Content-Type: text/csv; charset=utf-8');
@@ -634,7 +649,7 @@ class MPGR_Gift_Report {
                 echo '<td>' . esc_html($row['gifter_email']) . '</td>';
                 echo '<td>' . esc_html($row['product_name']) . '</td>';
                 echo '<td>' . esc_html($row['coupon_code']) . '</td>';
-                echo '<td class="' . $status_class . '">' . esc_html($row['gift_status_display']) . '</td>';
+                echo '<td class="' . esc_attr($status_class) . '">' . esc_html($row['gift_status_display']) . '</td>';
                 echo '<td>' . esc_html($row['recipient_email'] ?: 'N/A') . '</td>';
                 echo '<td>' . esc_html($row['redemption_date'] ?: 'N/A') . '</td>';
                 echo '<td>$' . number_format($row['gift_total'], 2) . '</td>';

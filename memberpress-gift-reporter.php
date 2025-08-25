@@ -97,15 +97,7 @@ class MemberPressGiftReporter {
 			'MeprUser class' => class_exists( 'MeprUser' ),
 		);
 
-		// For debugging (only show to administrators).
-		if ( current_user_can( 'manage_options' ) && isset( $_GET['mpgr_debug'] ) ) {
-			echo '<div class="notice notice-info">';
-			echo '<h4>MemberPress Detection Debug:</h4>';
-			foreach ( $checks as $check => $result ) {
-				echo '<p><strong>' . $check . ':</strong> ' . ( $result ? '✓ Found' : '✗ Not found' ) . '</p>';
-			}
-			echo '</div>';
-		}
+		// Debug information removed for security
 
 		return in_array( true, $checks, true );
 	}
