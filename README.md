@@ -122,29 +122,6 @@ The plugin uses optimized SQL queries to join:
 - `wp_usermeta` - User profile data
 - `wp_posts` - Product and coupon information
 
-### Database Optimization
-
-For large sites with many gift transactions, consider adding these database indexes:
-
-```sql
--- Optimize MemberPress transaction queries
-ALTER TABLE wp_mepr_transactions ADD INDEX idx_status_created (status, created_at);
-ALTER TABLE wp_mepr_transactions ADD INDEX idx_product_id (product_id);
-ALTER TABLE wp_mepr_transactions ADD INDEX idx_user_id (user_id);
-
--- Optimize transaction meta queries
-ALTER TABLE wp_mepr_transaction_meta ADD INDEX idx_transaction_meta_key (transaction_id, meta_key);
-ALTER TABLE wp_mepr_transaction_meta ADD INDEX idx_meta_key_value (meta_key, meta_value);
-
--- Optimize user queries
-ALTER TABLE wp_users ADD INDEX idx_user_email (user_email);
-
--- Optimize user meta queries
-ALTER TABLE wp_usermeta ADD INDEX idx_user_meta_key (user_id, meta_key);
-```
-
-**Note**: These indexes will improve query performance but may slightly slow down write operations. Monitor your site's performance after adding indexes.
-
 ## 🔒 Security
 
 - **Admin-only access**: Reports require `manage_options` capability
