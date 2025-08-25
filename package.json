@@ -1,0 +1,27 @@
+{
+  "name": "memberpress-gift-reporter",
+  "version": "1.0.0",
+  "description": "A WordPress plugin that generates comprehensive reports for the MemberPress Gifting add-on, showing the linkage between gift givers and recipients.",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "build": "npm run build:css && npm run build:js",
+    "build:css": "cleancss -o assets/css/style.min.css assets/css/style.css",
+    "build:js": "uglifyjs assets/js/script.js -o assets/js/script.min.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/omaraelhawary/memberpress-gift-reporter.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/omaraelhawary/memberpress-gift-reporter/issues"
+  },
+  "homepage": "https://github.com/omaraelhawary/memberpress-gift-reporter#readme",
+  "devDependencies": {
+    "clean-css-cli": "^5.6.3",
+    "uglify-js": "^3.19.3"
+  }
+}
