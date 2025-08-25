@@ -136,6 +136,105 @@
     };
 
     /**
+     * Resend gift email function
+     */
+    window.mpgrResendGiftEmail = function(giftId) {
+        var $btn = $('.mpgr-resend-email[data-gift-id="' + giftId + '"]');
+        var originalText = $btn.text();
+        $btn.text('⏳').prop('disabled', true);
+
+        $.ajax({
+            url: mpgr_ajax.ajax_url,
+            type: 'POST',
+            data: {
+                action: 'mpgr_resend_gift_email',
+                nonce: mpgr_ajax.resend_email_nonce,
+                gift_transaction_id: giftId
+            },
+            success: function(response) {
+                if (response.success) {
+                    showMessage(response.data.message, 'success');
+                } else {
+                    showMessage(response.data || 'Error resending gift email', 'error');
+                }
+            },
+            error: function() {
+                showMessage('Error resending gift email. Please try again.', 'error');
+            },
+            complete: function() {
+                $btn.text(originalText).prop('disabled', false);
+            }
+        });
+    };
+
+    /**
+     * Copy redemption link function
+     */
+    window.mpgrCopyRedemptionLink = function(giftId) {
+        var $btn = $('.mpgr-copy-link[data-gift-id="' + giftId + '"]');
+        var originalText = $btn.text();
+        $btn.text('⏳').prop('disabled', true);
+
+        $.ajax({
+            url: mpgr_ajax.ajax_url,
+            type: 'POST',
+            data: {
+                action: 'mpgr_copy_redemption_link',
+                nonce: mpgr_ajax.copy_link_nonce,
+                gift_transaction_id: giftId
+            },
+            success: function(response) {
+                if (response.success) {
+                    // Copy to clipboard
+                    if (navigator.clipboard && window.isSecureContext) {
+                        navigator.clipboard.writeText(response.data.redemption_link).then(function() {
+                            showMessage(response.data.message, 'success');
+                        }).catch(function() {
+                            // Fallback for older browsers
+                            copyToClipboardFallback(response.data.redemption_link);
+                            showMessage(response.data.message, 'success');
+                        });
+                    } else {
+                        // Fallback for older browsers
+                        copyToClipboardFallback(response.data.redemption_link);
+                        showMessage(response.data.message, 'success');
+                    }
+                } else {
+                    showMessage(response.data || 'Error copying redemption link', 'error');
+                }
+            },
+            error: function() {
+                showMessage('Error copying redemption link. Please try again.', 'error');
+            },
+            complete: function() {
+                $btn.text(originalText).prop('disabled', false);
+            }
+        });
+    };
+
+    /**
+     * Fallback copy to clipboard function for older browsers
+     */
+    function copyToClipboardFallback(text) {
+        var textArea = document.createElement('textarea');
+        textArea.value = text;
+        textArea.style.position = 'fixed';
+        textArea.style.left = '-999999px';
+        textArea.style.top = '-999999px';
+        document.body.appendChild(textArea);
+        textArea.focus();
+        textArea.select();
+        
+        try {
+            document.execCommand('copy');
+        } catch (err) {
+            console.error('Fallback: Oops, unable to copy', err);
+        }
+        
+        document.body.removeChild(textArea);
+    }
+
+    /**
      * Document ready
      */
     $(document).ready(function() {
@@ -166,6 +265,19 @@
         $(document).on('click', '.mpgr-export-btn', function(e) {
             e.preventDefault();
             mpgrExportCSV();
+        });
+
+        // Handle action button clicks
+        $(document).on('click', '.mpgr-resend-email', function(e) {
+            e.preventDefault();
+            var giftId = $(this).data('gift-id');
+            mpgrResendGiftEmail(giftId);
+        });
+
+        $(document).on('click', '.mpgr-copy-link', function(e) {
+            e.preventDefault();
+            var giftId = $(this).data('gift-id');
+            mpgrCopyRedemptionLink(giftId);
         });
 
         // Add loading indicator for table

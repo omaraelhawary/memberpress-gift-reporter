@@ -26,6 +26,8 @@ class MPGR_Gift_Report {
 	public function __construct() {
 		// Handle AJAX requests.
 		add_action( 'wp_ajax_mpgr_export_csv', array( $this, 'ajax_export_csv' ) );
+		add_action( 'wp_ajax_mpgr_resend_gift_email', array( $this, 'ajax_resend_gift_email' ) );
+		add_action( 'wp_ajax_mpgr_copy_redemption_link', array( $this, 'ajax_copy_redemption_link' ) );
 
 		// Add REST API endpoint.
 		add_action( 'rest_api_init', array( $this, 'register_rest_routes' ) );
@@ -71,6 +73,177 @@ class MPGR_Gift_Report {
 
 		$this->generate_report(0, 0, $filters);
 		$this->export_csv('memberpress_gift_report.csv', $filters);
+	}
+    
+    /**
+     * AJAX resend gift email handler
+     */
+	public function ajax_resend_gift_email() {
+		// Verify nonce and permissions.
+		if ( ! wp_verify_nonce( $_POST['nonce'], 'mpgr_resend_gift_email' ) || ! current_user_can( 'manage_options' ) ) {
+			wp_die( __( 'Access denied', 'memberpress-gift-reporter' ) );
+		}
+
+		$gift_transaction_id = intval($_POST['gift_transaction_id']);
+		
+		if (!$gift_transaction_id) {
+			wp_send_json_error('Invalid gift transaction ID');
+		}
+
+		// Get gift transaction details
+		global $wpdb;
+		$gift_transaction = $wpdb->get_row($wpdb->prepare(
+			"SELECT * FROM {$wpdb->prefix}mepr_transactions WHERE id = %d",
+			$gift_transaction_id
+		));
+
+		if (!$gift_transaction) {
+			wp_send_json_error('Gift transaction not found');
+		}
+
+		// Get gift coupon ID
+		$gift_coupon_id = $wpdb->get_var($wpdb->prepare(
+			"SELECT meta_value FROM {$wpdb->prefix}mepr_transaction_meta 
+			WHERE transaction_id = %d AND meta_key = '_gift_coupon_id'",
+			$gift_transaction_id
+		));
+
+		if (!$gift_coupon_id) {
+			wp_send_json_error('Gift coupon not found');
+		}
+
+		// Get coupon code
+		$coupon_code = get_post_field('post_title', $gift_coupon_id);
+		
+		if (!$coupon_code) {
+			wp_send_json_error('Coupon code not found');
+		}
+
+		// Get gifter email
+		$gifter_email = get_userdata($gift_transaction->user_id)->user_email;
+		
+		if (!$gifter_email) {
+			wp_send_json_error('Gifter email not found');
+		}
+
+		// Get product name
+		$product_name = get_post_field('post_title', $gift_transaction->product_id);
+
+		// Generate redemption link
+		$redemption_link = home_url('/memberpress-checkout/?coupon=' . urlencode($coupon_code));
+
+		// Send gift email
+		$subject = sprintf(__('Your Gift Purchase - %s', 'memberpress-gift-reporter'), $product_name);
+		
+		// Create HTML email message with proper formatting
+		$message = sprintf(
+			'<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>%1$s</title>
+    <style>
+        body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px; }
+        .header { background-color: #f8f9fa; padding: 20px; border-radius: 8px; margin-bottom: 20px; }
+        .content { background-color: #ffffff; padding: 20px; border-radius: 8px; border: 1px solid #e9ecef; }
+        .coupon-code { background-color: #e3f2fd; padding: 15px; border-radius: 6px; border-left: 4px solid #2196f3; margin: 20px 0; font-family: monospace; font-size: 16px; font-weight: bold; }
+        .redemption-link { background-color: #f3e5f5; padding: 15px; border-radius: 6px; border-left: 4px solid #9c27b0; margin: 20px 0; }
+        .redemption-link a { color: #9c27b0; text-decoration: none; font-weight: bold; }
+        .redemption-link a:hover { text-decoration: underline; }
+        .footer { margin-top: 30px; padding-top: 20px; border-top: 1px solid #e9ecef; color: #6c757d; font-size: 14px; }
+        .greeting { font-size: 18px; font-weight: bold; margin-bottom: 20px; }
+        .product-name { font-weight: bold; color: #2c3e50; }
+        .thank-you { font-style: italic; color: #27ae60; }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1 style="margin: 0; color: #2c3e50;">🎁 Gift Membership Purchase</h1>
+    </div>
+    
+    <div class="content">
+        <div class="greeting">Hello!</div>
+        
+        <p>You have purchased a gift membership for <span class="product-name">%1$s</span>.</p>
+        
+        <div class="redemption-link">
+            <strong>The recipient can redeem this gift by visiting:</strong><br>
+            <a href="%2$s">%2$s</a>
+        </div>
+        
+        <p class="thank-you">Thank you for your purchase!</p>
+        
+        <div class="footer">
+            <p>Best regards,<br>
+            <strong>%3$s</strong></p>
+        </div>
+    </div>
+</body>
+</html>',
+			$product_name,
+			$redemption_link,
+			get_bloginfo('name')
+		);
+
+		// Set headers for HTML email
+		$headers = array(
+			'Content-Type: text/html; charset=UTF-8',
+			'From: ' . get_bloginfo('name') . ' <' . get_option('admin_email') . '>'
+		);
+		
+		$sent = wp_mail($gifter_email, $subject, $message, $headers);
+
+		if ($sent) {
+			wp_send_json_success(array(
+				'message' => sprintf(__('Gift email resent successfully to %s', 'memberpress-gift-reporter'), $gifter_email)
+			));
+		} else {
+			wp_send_json_error(__('Failed to send gift email. Please check your email configuration.', 'memberpress-gift-reporter'));
+		}
+	}
+    
+    /**
+     * AJAX copy redemption link handler
+     */
+	public function ajax_copy_redemption_link() {
+		// Verify nonce and permissions.
+		if ( ! wp_verify_nonce( $_POST['nonce'], 'mpgr_copy_redemption_link' ) || ! current_user_can( 'manage_options' ) ) {
+			wp_die( __( 'Access denied', 'memberpress-gift-reporter' ) );
+		}
+
+		$gift_transaction_id = intval($_POST['gift_transaction_id']);
+		
+		if (!$gift_transaction_id) {
+			wp_send_json_error('Invalid gift transaction ID');
+		}
+
+		// Get gift coupon ID
+		global $wpdb;
+		$gift_coupon_id = $wpdb->get_var($wpdb->prepare(
+			"SELECT meta_value FROM {$wpdb->prefix}mepr_transaction_meta 
+			WHERE transaction_id = %d AND meta_key = '_gift_coupon_id'",
+			$gift_transaction_id
+		));
+
+		if (!$gift_coupon_id) {
+			wp_send_json_error('Gift coupon not found');
+		}
+
+		// Get coupon code
+		$coupon_code = get_post_field('post_title', $gift_coupon_id);
+		
+		if (!$coupon_code) {
+			wp_send_json_error('Coupon code not found');
+		}
+
+		// Generate redemption link
+		$redemption_link = home_url('/memberpress-checkout/?coupon=' . urlencode($coupon_code));
+
+		wp_send_json_success(array(
+			'redemption_link' => $redemption_link,
+			'message' => __('Redemption link copied to clipboard', 'memberpress-gift-reporter')
+		));
 	}
     
     /**
@@ -626,6 +799,7 @@ class MPGR_Gift_Report {
             echo '<th>Recipient Email</th>';
             echo '<th>Redemption Date</th>';
             echo '<th>Amount</th>';
+            echo '<th>Actions</th>';
             echo '</tr>';
             echo '</thead>';
             echo '<tbody>';
@@ -653,6 +827,14 @@ class MPGR_Gift_Report {
                 echo '<td>' . esc_html($row['recipient_email'] ?: 'N/A') . '</td>';
                 echo '<td>' . esc_html($row['redemption_date'] ?: 'N/A') . '</td>';
                 echo '<td>$' . number_format($row['gift_total'], 2) . '</td>';
+                echo '<td class="mpgr-actions">';
+                if ($row['gift_status'] !== 'claimed') {
+                    echo '<button type="button" class="mpgr-action-btn mpgr-resend-email" data-gift-id="' . esc_attr($row['gift_transaction_id']) . '" title="Resend Gift Email">📧</button>';
+                    echo '<button type="button" class="mpgr-action-btn mpgr-copy-link" data-gift-id="' . esc_attr($row['gift_transaction_id']) . '" title="Copy Redemption Link">🔗</button>';
+                } else {
+                    // Empty cell for claimed gifts
+                }
+                echo '</td>';
                 echo '</tr>';
             }
             
@@ -706,7 +888,9 @@ class MPGR_Gift_Report {
             wp_enqueue_script('mpgr-script', MPGR_PLUGIN_URL . 'assets/js/script.min.js', array('jquery'), MPGR_VERSION, true);
             wp_localize_script('mpgr-script', 'mpgr_ajax', array(
                 'ajax_url' => admin_url('admin-ajax.php'),
-                'nonce' => wp_create_nonce('mpgr_export_csv')
+                'nonce' => wp_create_nonce('mpgr_export_csv'),
+                'resend_email_nonce' => wp_create_nonce('mpgr_resend_gift_email'),
+                'copy_link_nonce' => wp_create_nonce('mpgr_copy_redemption_link')
             ));
         }
     }

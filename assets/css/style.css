@@ -257,6 +257,63 @@
     font-weight: bold;
 }
 
+/* Action buttons styles */
+.mpgr-actions {
+    text-align: center;
+    white-space: nowrap;
+}
+
+.mpgr-action-btn {
+    background: none;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    padding: 6px 8px;
+    margin: 0 2px;
+    cursor: pointer;
+    font-size: 14px;
+    transition: all 0.2s ease;
+    min-width: 32px;
+    height: 32px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.mpgr-action-btn:hover {
+    background-color: #f8f9fa;
+    border-color: #0073aa;
+    transform: translateY(-1px);
+    box-shadow: 0 2px 4px rgba(0, 115, 170, 0.1);
+}
+
+.mpgr-action-btn:active {
+    transform: translateY(0);
+}
+
+.mpgr-action-btn:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+    transform: none;
+}
+
+.mpgr-resend-email {
+    color: #0073aa;
+}
+
+.mpgr-resend-email:hover {
+    background-color: #e3f2fd !important;
+    border-color: #0073aa !important;
+}
+
+.mpgr-copy-link {
+    color: #28a745;
+}
+
+.mpgr-copy-link:hover {
+    background-color: #d4edda !important;
+    border-color: #28a745 !important;
+}
+
 .mpgr-no-data {
     text-align: center;
     padding: 60px 40px;
@@ -451,6 +508,14 @@
     .mpgr-table th,
     .mpgr-table td {
         padding: 8px 5px;
+    }
+    
+    .mpgr-action-btn {
+        padding: 4px 6px;
+        margin: 0 1px;
+        font-size: 12px;
+        min-width: 28px;
+        height: 28px;
     }
     
     .mpgr-summary {
