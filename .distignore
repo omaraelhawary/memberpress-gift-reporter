@@ -22,6 +22,9 @@ composer.json
 package.json
 phpcs.xml
 
+# Screenshots (for documentation, not needed in distribution)
+screenshots/
+
 # IDE and Editor files
 .vscode/
 .idea/
