@@ -40,14 +40,26 @@
 
 ### Viewing Reports
 - Navigate to **MemberPress** → **Gift Report** in your WordPress admin
-- View summary statistics including total gifts, claim rate, and revenue
+- Use the advanced filtering system to narrow down your data:
+  - **Date Filters**: Filter by purchase or redemption date ranges
+  - **Status Filters**: Filter by claimed/unclaimed gift status
+  - **Product Filters**: Filter by specific memberships
+  - **Email Filters**: Search by gifter or recipient email addresses
+- View summary statistics including total gifts, claim rate, and revenue (filtered)
 - Browse the detailed gift transaction table
-- Export data to CSV for further analysis
+- Use **Clear Filters** to reset all filters quickly
 
 ### Exporting Data
+- Apply your desired filters to narrow down the data
 - Click the **"Download CSV Report"** button
-- The CSV file will contain all gift transaction data
+- The CSV file will contain only the filtered gift transaction data
 - Use the exported data in Excel, Google Sheets, or other analysis tools
+
+### Advanced Features
+- **Smart Filtering**: Combine multiple filters for precise data analysis
+- **Active Filters Display**: See which filters are currently applied
+- **Mobile Optimization**: Use the interface on any device
+- **Quick Reset**: Clear all filters with one click
 
 ## Troubleshooting
 
@@ -60,6 +72,10 @@
 - Ensure MemberPress Gifting add-on is active
 - Verify you have completed gift transactions
 - Check that you have admin permissions
+- **Smart Detection**: The plugin will show different messages for:
+  - No gift transactions exist at all
+  - Gift transactions exist but don't match your current filters
+- Try clearing all filters to see if data appears
 
 ### Export issues
 - Ensure your server allows file downloads

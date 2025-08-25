@@ -51,6 +51,11 @@ yarn-error.log*
 # PHP CodeSniffer cache
 .phpcs.cache
 
+# Build artifacts and distribution files
+*.zip
+build/
+dist/
+
 # IDE and Editor files
 .vscode/
 .idea/

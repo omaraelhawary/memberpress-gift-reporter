@@ -21,7 +21,46 @@
         formData.append('action', 'mpgr_export_csv');
         formData.append('nonce', mpgr_ajax.nonce);
 
-        // No filter parameters needed - export all data
+        // Add filter parameters
+        var dateFrom = $('#date_from').val();
+        if (dateFrom) {
+            formData.append('date_from', dateFrom);
+        }
+        
+        var dateTo = $('#date_to').val();
+        if (dateTo) {
+            formData.append('date_to', dateTo);
+        }
+        
+        var giftStatus = $('#gift_status').val();
+        if (giftStatus) {
+            formData.append('gift_status', giftStatus);
+        }
+        
+        var product = $('#product').val();
+        if (product) {
+            formData.append('product', product);
+        }
+        
+        var gifterEmail = $('#gifter_email').val();
+        if (gifterEmail) {
+            formData.append('gifter_email', gifterEmail);
+        }
+        
+        var recipientEmail = $('#recipient_email').val();
+        if (recipientEmail) {
+            formData.append('recipient_email', recipientEmail);
+        }
+        
+        var redemptionFrom = $('#redemption_from').val();
+        if (redemptionFrom) {
+            formData.append('redemption_from', redemptionFrom);
+        }
+        
+        var redemptionTo = $('#redemption_to').val();
+        if (redemptionTo) {
+            formData.append('redemption_to', redemptionTo);
+        }
 
         // Make AJAX request
         $.ajax({
@@ -77,6 +116,24 @@
             });
         }, 5000);
     }
+
+    /**
+     * Clear all filters function
+     */
+    window.clearAllFilters = function() {
+        // Clear all filter inputs
+        $('#date_from').val('');
+        $('#date_to').val('');
+        $('#gift_status').val('');
+        $('#product').val('');
+        $('#gifter_email').val('');
+        $('#recipient_email').val('');
+        $('#redemption_from').val('');
+        $('#redemption_to').val('');
+        
+        // Submit the form to refresh the page
+        $('form').submit();
+    };
 
     /**
      * Document ready

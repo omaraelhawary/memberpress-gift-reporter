@@ -94,9 +94,36 @@ class MPGR_Admin {
 			return;
 		}
 
+		// Get filter parameters
+		$filters = array();
+		if (!empty($_GET['date_from'])) {
+			$filters['date_from'] = sanitize_text_field($_GET['date_from']);
+		}
+		if (!empty($_GET['date_to'])) {
+			$filters['date_to'] = sanitize_text_field($_GET['date_to']);
+		}
+		if (!empty($_GET['gift_status'])) {
+			$filters['gift_status'] = sanitize_text_field($_GET['gift_status']);
+		}
+		if (!empty($_GET['product'])) {
+			$filters['product'] = intval($_GET['product']);
+		}
+		if (!empty($_GET['gifter_email'])) {
+			$filters['gifter_email'] = sanitize_email($_GET['gifter_email']);
+		}
+		if (!empty($_GET['recipient_email'])) {
+			$filters['recipient_email'] = sanitize_email($_GET['recipient_email']);
+		}
+		if (!empty($_GET['redemption_from'])) {
+			$filters['redemption_from'] = sanitize_text_field($_GET['redemption_from']);
+		}
+		if (!empty($_GET['redemption_to'])) {
+			$filters['redemption_to'] = sanitize_text_field($_GET['redemption_to']);
+		}
+
 		// Display report.
 		$gift_report = new MPGR_Gift_Report();
-		$gift_report->display_report();
+		$gift_report->display_report($filters);
 
 		echo '</div>';
 	}
