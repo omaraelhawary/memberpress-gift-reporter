@@ -1,0 +1,29 @@
+{
+    "name": "omaraelhawary/memberpress-gift-reporter",
+    "description": "A WordPress plugin that generates comprehensive reports for the MemberPress Gifting add-on",
+    "type": "wordpress-plugin",
+    "license": "GPL-2.0-or-later",
+    "authors": [
+        {
+            "name": "Omar ElHawary",
+            "email": "omaraelhawary@gmail.com"
+        }
+    ],
+    "require": {
+        "php": ">=7.4"
+    },
+    "require-dev": {
+        "squizlabs/php_codesniffer": "^3.7",
+        "wp-coding-standards/wpcs": "^2.3",
+        "dealerdirect/phpcodesniffer-composer-installer": "^0.7"
+    },
+    "scripts": {
+        "phpcs": "phpcs --standard=WordPress --extensions=php --ignore=node_modules,vendor .",
+        "phpcbf": "phpcbf --standard=WordPress --extensions=php --ignore=node_modules,vendor ."
+    },
+    "config": {
+        "allow-plugins": {
+            "dealerdirect/phpcodesniffer-composer-installer": true
+        }
+    }
+}

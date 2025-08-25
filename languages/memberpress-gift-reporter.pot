@@ -1,0 +1,125 @@
+# Copyright (C) 2024 MemberPress Gift Reporter
+# This file is distributed under the GPL v2 or later.
+msgid ""
+msgstr ""
+"Project-Id-Version: MemberPress Gift Reporter 1.0.0\n"
+"Report-Msgid-Bugs-To: https://wordpress.org/support/plugin/memberpress-gift-reporter\n"
+"POT-Creation-Date: 2024-01-01 00:00+0000\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"PO-Revision-Date: 2024-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+
+#: includes/class-admin.php:42
+msgid "Gift Report"
+msgstr ""
+
+#: includes/class-admin.php:43
+msgid "Gift Report"
+msgstr ""
+
+#: includes/class-admin.php:67
+msgid "View Report"
+msgstr ""
+
+#: includes/class-admin.php:75
+msgid "MemberPress Gift Reporter:"
+msgstr ""
+
+#: includes/class-admin.php:76
+msgid "MemberPress Gifting add-on is not active. This plugin requires the MemberPress Gifting add-on to function properly."
+msgstr ""
+
+#: includes/class-admin.php:87
+msgid "You do not have sufficient permissions to access this page."
+msgstr ""
+
+#: includes/class-admin.php:93
+msgid "MemberPress Gift Report"
+msgstr ""
+
+#: includes/class-admin.php:97
+msgid "MemberPress Gifting add-on is not active. Please activate it to use this report."
+msgstr ""
+
+#: includes/class-admin.php:110
+msgid "Filters"
+msgstr ""
+
+#: includes/class-admin.php:115
+msgid "Start Date"
+msgstr ""
+
+#: includes/class-admin.php:120
+msgid "End Date"
+msgstr ""
+
+#: includes/class-admin.php:125
+msgid "Gift Status"
+msgstr ""
+
+#: includes/class-admin.php:128
+msgid "All Statuses"
+msgstr ""
+
+#: includes/class-admin.php:129
+msgid "Claimed"
+msgstr ""
+
+#: includes/class-admin.php:130
+msgid "Unclaimed"
+msgstr ""
+
+#: includes/class-admin.php:135
+msgid "Gifter Email"
+msgstr ""
+
+#: includes/class-admin.php:136
+msgid "Filter by gifter email"
+msgstr ""
+
+#: includes/class-admin.php:141
+msgid "Apply Filters"
+msgstr ""
+
+#: includes/class-admin.php:142
+msgid "Clear Filters"
+msgstr ""
+
+#: includes/class-gift-report.php:67
+msgid "Access denied"
+msgstr ""
+
+#: includes/class-gift-report.php:89
+msgid "Exporting..."
+msgstr ""
+
+#: includes/class-gift-report.php:90
+msgid "Error occurred"
+msgstr ""
+
+#: memberpress-gift-reporter.php:15
+msgid "MemberPress Gift Reporter"
+msgstr ""
+
+#: memberpress-gift-reporter.php:16
+msgid "Generate comprehensive reports for MemberPress Gifting add-on, showing the linkage between gift givers and recipients."
+msgstr ""
+
+#: memberpress-gift-reporter.php:20
+msgid "GPL v2 or later"
+msgstr ""
+
+#: memberpress-gift-reporter.php:21
+msgid "https://www.gnu.org/licenses/gpl-2.0.html"
+msgstr ""
+
+#: memberpress-gift-reporter.php:22
+msgid "memberpress-gift-reporter"
+msgstr ""
+
+#: memberpress-gift-reporter.php:23
+msgid "/languages"
+msgstr ""
