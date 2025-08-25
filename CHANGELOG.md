@@ -8,14 +8,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
-- Initial plugin structure and functionality
-- Gift report generation and display
-- CSV export functionality
-- REST API endpoints
-- Admin interface integration
-- WordPress coding standards compliance
-- GitHub Actions for PHPCS
-- Comprehensive documentation
+- N/A
 
 ### Changed
 - N/A
@@ -30,10 +23,45 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - N/A
 
 ### Security
-- Implemented nonce verification for all forms
-- Added capability checks for admin access
-- Sanitized all user inputs
-- Used prepared statements for database queries
+- N/A
+
+## [1.1.0] - 2024-01-15
+
+### Added
+- Enhanced plugin structure and functionality
+- Improved gift report generation and display
+- Enhanced CSV export functionality with better formatting
+- Expanded REST API endpoints with additional filtering options
+- Improved admin interface integration with better UX
+- WordPress coding standards compliance improvements
+- GitHub Actions workflow for automated PHPCS checks
+- Comprehensive documentation updates
+- Better error handling and user feedback
+- Enhanced database query optimization for large datasets
+
+### Changed
+- Improved admin interface responsiveness
+- Enhanced CSV export formatting for better readability
+- Optimized database queries for better performance
+- Updated documentation with more detailed usage examples
+
+### Deprecated
+- N/A
+
+### Removed
+- N/A
+
+### Fixed
+- Minor UI alignment issues in admin interface
+- Improved error handling for edge cases
+- Fixed potential memory issues with large datasets
+
+### Security
+- Enhanced nonce verification for all forms
+- Improved capability checks for admin access
+- Strengthened input sanitization for all user inputs
+- Enhanced prepared statements for database queries
+- Added additional security headers
 
 ## [1.0.0] - 2024-01-XX
 
@@ -70,6 +98,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## Version History
 
+- **1.1.0**: Enhanced functionality with improved performance and security
 - **1.0.0**: Initial release with core functionality
 - **Future versions**: Will follow semantic versioning
 
