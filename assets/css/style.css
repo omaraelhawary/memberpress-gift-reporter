@@ -294,6 +294,7 @@
     border-color: #0073aa;
     transform: translateY(-1px);
     box-shadow: 0 2px 4px rgba(0, 115, 170, 0.1);
+    cursor: pointer;
 }
 
 .mpgr-action-btn:active {
@@ -313,6 +314,7 @@
 .mpgr-resend-email:hover {
     background-color: #e3f2fd !important;
     border-color: #0073aa !important;
+    cursor: pointer !important;
 }
 
 .mpgr-copy-link {
@@ -322,6 +324,7 @@
 .mpgr-copy-link:hover {
     background-color: #d4edda !important;
     border-color: #28a745 !important;
+    cursor: pointer !important;
 }
 
 /* Button states */

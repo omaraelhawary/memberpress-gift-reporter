@@ -344,7 +344,7 @@
             // Set proper tooltip text based on button class
             var tooltipText = '';
             if ($btn.hasClass('mpgr-resend-email')) {
-                tooltipText = '📧 Resend gift email to recipient';
+                tooltipText = '📧 Resend gift email to gifter';
             } else if ($btn.hasClass('mpgr-copy-link')) {
                 tooltipText = '🔗 Copy redemption link to clipboard';
             } else {
