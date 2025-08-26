@@ -140,8 +140,15 @@
      */
     window.mpgrResendGiftEmail = function(giftId) {
         var $btn = $('.mpgr-resend-email[data-gift-id="' + giftId + '"]');
-        var originalText = $btn.text();
-        $btn.text('⏳').prop('disabled', true);
+        var originalText = '📧'; // Hardcode the original text to ensure consistency
+        
+        // Prevent multiple clicks
+        if ($btn.prop('disabled')) {
+            return;
+        }
+        
+        // Show loading state
+        $btn.text('⏳').prop('disabled', true).addClass('mpgr-loading');
 
         $.ajax({
             url: mpgr_ajax.ajax_url,
@@ -153,16 +160,22 @@
             },
             success: function(response) {
                 if (response.success) {
+                    // Show success state briefly
+                    $btn.text('✅').removeClass('mpgr-loading').addClass('mpgr-success');
                     showMessage(response.data.message, 'success');
+                    
+                    // Reset button after 2 seconds
+                    setTimeout(function() {
+                        $btn.text(originalText).removeClass('mpgr-success').prop('disabled', false);
+                    }, 2000);
                 } else {
                     showMessage(response.data || 'Error resending gift email', 'error');
+                    $btn.text(originalText).removeClass('mpgr-loading').prop('disabled', false);
                 }
             },
             error: function() {
                 showMessage('Error resending gift email. Please try again.', 'error');
-            },
-            complete: function() {
-                $btn.text(originalText).prop('disabled', false);
+                $btn.text(originalText).removeClass('mpgr-loading').prop('disabled', false);
             }
         });
     };
@@ -172,8 +185,15 @@
      */
     window.mpgrCopyRedemptionLink = function(giftId) {
         var $btn = $('.mpgr-copy-link[data-gift-id="' + giftId + '"]');
-        var originalText = $btn.text();
-        $btn.text('⏳').prop('disabled', true);
+        var originalText = '🔗'; // Hardcode the original text to ensure consistency
+        
+        // Prevent multiple clicks
+        if ($btn.prop('disabled')) {
+            return;
+        }
+        
+        // Show loading state
+        $btn.text('⏳').prop('disabled', true).addClass('mpgr-loading');
 
         $.ajax({
             url: mpgr_ajax.ajax_url,
@@ -188,26 +208,44 @@
                     // Copy to clipboard
                     if (navigator.clipboard && window.isSecureContext) {
                         navigator.clipboard.writeText(response.data.redemption_link).then(function() {
+                            // Show success state briefly
+                            $btn.text('✅').removeClass('mpgr-loading').addClass('mpgr-success');
                             showMessage(response.data.message, 'success');
+                            
+                            // Reset button after 2 seconds
+                            setTimeout(function() {
+                                $btn.text(originalText).removeClass('mpgr-success').prop('disabled', false);
+                            }, 2000);
                         }).catch(function() {
                             // Fallback for older browsers
                             copyToClipboardFallback(response.data.redemption_link);
+                            $btn.text('✅').removeClass('mpgr-loading').addClass('mpgr-success');
                             showMessage(response.data.message, 'success');
+                            
+                            // Reset button after 2 seconds
+                            setTimeout(function() {
+                                $btn.text(originalText).removeClass('mpgr-success').prop('disabled', false);
+                            }, 2000);
                         });
                     } else {
                         // Fallback for older browsers
                         copyToClipboardFallback(response.data.redemption_link);
+                        $btn.text('✅').removeClass('mpgr-loading').addClass('mpgr-success');
                         showMessage(response.data.message, 'success');
+                        
+                        // Reset button after 2 seconds
+                        setTimeout(function() {
+                            $btn.text(originalText).removeClass('mpgr-success').prop('disabled', false);
+                        }, 2000);
                     }
                 } else {
                     showMessage(response.data || 'Error copying redemption link', 'error');
+                    $btn.text(originalText).removeClass('mpgr-loading').prop('disabled', false);
                 }
             },
             error: function() {
                 showMessage('Error copying redemption link. Please try again.', 'error');
-            },
-            complete: function() {
-                $btn.text(originalText).prop('disabled', false);
+                $btn.text(originalText).removeClass('mpgr-loading').prop('disabled', false);
             }
         });
     };
@@ -296,6 +334,58 @@
             } else {
                 $('.mpgr-table').removeClass('mpgr-mobile');
             }
+        });
+
+        // Enhanced tooltip functionality
+        $('.mpgr-action-btn').each(function() {
+            var $btn = $(this);
+            var title = $btn.attr('title');
+            
+            // Set proper tooltip text based on button class
+            var tooltipText = '';
+            if ($btn.hasClass('mpgr-resend-email')) {
+                tooltipText = '📧 Resend gift email to recipient';
+            } else if ($btn.hasClass('mpgr-copy-link')) {
+                tooltipText = '🔗 Copy redemption link to clipboard';
+            } else {
+                tooltipText = title; // Fallback to original title
+            }
+            
+            // Remove the title attribute to prevent default browser tooltip
+            $btn.removeAttr('title');
+            
+            // Add custom tooltip on hover (only when not in loading/success state)
+            $btn.hover(
+                function() {
+                    // Don't show tooltip if button is in loading or success state
+                    if ($(this).hasClass('mpgr-loading') || $(this).hasClass('mpgr-success')) {
+                        return;
+                    }
+                    
+                    var $tooltip = $('<div class="mpgr-custom-tooltip">' + tooltipText + '</div>');
+                    $tooltip.css({
+                        position: 'absolute',
+                        bottom: '100%',
+                        left: '50%',
+                        transform: 'translateX(-50%)',
+                        background: 'rgba(0, 0, 0, 0.9)',
+                        color: 'white',
+                        padding: '6px 10px',
+                        borderRadius: '4px',
+                        fontSize: '12px',
+                        whiteSpace: 'nowrap',
+                        zIndex: '1000',
+                        marginBottom: '5px',
+                        boxShadow: '0 2px 8px rgba(0, 0, 0, 0.3)',
+                        pointerEvents: 'none'
+                    });
+                    
+                    $btn.append($tooltip);
+                },
+                function() {
+                    $btn.find('.mpgr-custom-tooltip').remove();
+                }
+            );
         });
     });
 

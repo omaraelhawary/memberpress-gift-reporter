@@ -829,8 +829,8 @@ class MPGR_Gift_Report {
                 echo '<td>$' . number_format($row['gift_total'], 2) . '</td>';
                 echo '<td class="mpgr-actions">';
                 if ($row['gift_status'] !== 'claimed') {
-                    echo '<button type="button" class="mpgr-action-btn mpgr-resend-email" data-gift-id="' . esc_attr($row['gift_transaction_id']) . '" title="Resend Gift Email">📧</button>';
-                    echo '<button type="button" class="mpgr-action-btn mpgr-copy-link" data-gift-id="' . esc_attr($row['gift_transaction_id']) . '" title="Copy Redemption Link">🔗</button>';
+                    echo '<button type="button" class="mpgr-action-btn mpgr-resend-email" data-gift-id="' . esc_attr($row['gift_transaction_id']) . '" title="📧 Resend gift email to recipient">📧</button>';
+                    echo '<button type="button" class="mpgr-action-btn mpgr-copy-link" data-gift-id="' . esc_attr($row['gift_transaction_id']) . '" title="🔗 Copy redemption link to clipboard">🔗</button>';
                 } else {
                     // Empty cell for claimed gifts
                 }

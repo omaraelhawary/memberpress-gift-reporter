@@ -261,6 +261,15 @@
 .mpgr-actions {
     text-align: center;
     white-space: nowrap;
+    min-height: 44px; /* Ensure consistent height for empty cells */
+}
+
+.mpgr-actions:not(:empty) {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 4px;
+    flex-wrap: nowrap;
 }
 
 .mpgr-action-btn {
@@ -268,7 +277,7 @@
     border: 1px solid #ddd;
     border-radius: 4px;
     padding: 6px 8px;
-    margin: 0 2px;
+    margin: 0;
     cursor: pointer;
     font-size: 14px;
     transition: all 0.2s ease;
@@ -277,6 +286,7 @@
     display: inline-flex;
     align-items: center;
     justify-content: center;
+    position: relative;
 }
 
 .mpgr-action-btn:hover {
@@ -312,6 +322,59 @@
 .mpgr-copy-link:hover {
     background-color: #d4edda !important;
     border-color: #28a745 !important;
+}
+
+/* Button states */
+.mpgr-action-btn.mpgr-loading {
+    background-color: #f8f9fa !important;
+    border-color: #6c757d !important;
+    color: #6c757d !important;
+    cursor: not-allowed;
+}
+
+.mpgr-action-btn.mpgr-success {
+    background-color: #d4edda !important;
+    border-color: #28a745 !important;
+    color: #28a745 !important;
+    animation: mpgr-success-pulse 0.5s ease-in-out;
+}
+
+@keyframes mpgr-success-pulse {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.1); }
+    100% { transform: scale(1); }
+}
+
+/* Enhanced tooltip styles */
+.mpgr-action-btn[title]:hover::after {
+    content: attr(title);
+    position: absolute;
+    bottom: 100%;
+    left: 50%;
+    transform: translateX(-50%);
+    background: rgba(0, 0, 0, 0.9);
+    color: white;
+    padding: 6px 10px;
+    border-radius: 4px;
+    font-size: 12px;
+    white-space: nowrap;
+    z-index: 1000;
+    margin-bottom: 5px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+    pointer-events: none;
+}
+
+.mpgr-action-btn[title]:hover::before {
+    content: '';
+    position: absolute;
+    bottom: 100%;
+    left: 50%;
+    transform: translateX(-50%);
+    border: 4px solid transparent;
+    border-top-color: rgba(0, 0, 0, 0.9);
+    margin-bottom: 1px;
+    z-index: 1000;
+    pointer-events: none;
 }
 
 .mpgr-no-data {
@@ -510,9 +573,13 @@
         padding: 8px 5px;
     }
     
+    .mpgr-actions:not(:empty) {
+        gap: 2px;
+    }
+    
     .mpgr-action-btn {
         padding: 4px 6px;
-        margin: 0 1px;
+        margin: 0;
         font-size: 12px;
         min-width: 28px;
         height: 28px;
