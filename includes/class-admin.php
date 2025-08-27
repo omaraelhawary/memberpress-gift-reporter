@@ -96,9 +96,14 @@ class MPGR_Admin {
 			return;
 		}
 
-		// Verify nonce for filter requests
-		if (!empty($_GET) && !wp_verify_nonce($_GET['_wpnonce'] ?? '', 'mpgr_filter_nonce')) {
-			wp_die(__('Security check failed. Please try again.', 'memberpress-gift-reporter'));
+		// Verify nonce for filter requests (only when filters are being applied)
+		if (!empty($_GET['date_from']) || !empty($_GET['date_to']) || !empty($_GET['gift_status']) || 
+			!empty($_GET['product']) || !empty($_GET['gifter_email']) || !empty($_GET['recipient_email']) ||
+			!empty($_GET['redemption_from']) || !empty($_GET['redemption_to'])) {
+			
+			if (!wp_verify_nonce($_GET['_wpnonce'] ?? '', 'mpgr_filter_nonce')) {
+				wp_die(__('Security check failed. Please try again.', 'memberpress-gift-reporter'));
+			}
 		}
 
 		// Get filter parameters
