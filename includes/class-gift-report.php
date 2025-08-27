@@ -62,6 +62,7 @@ class MPGR_Gift_Report {
 		if (!empty($_POST['recipient_email'])) {
 			$filters['recipient_email'] = sanitize_email($_POST['recipient_email']);
 		}
+
 		if (!empty($_POST['redemption_from'])) {
 			$filters['redemption_from'] = sanitize_text_field($_POST['redemption_from']);
 		}
@@ -189,6 +190,8 @@ class MPGR_Gift_Report {
             $where_conditions[] = $wpdb->prepare("recipient.user_email LIKE %s", '%' . $wpdb->esc_like($recipient_email) . '%');
         }
         
+
+        
         // Redemption From filter
         if (!empty($filters['redemption_from'])) {
             $redemption_from = sanitize_text_field($filters['redemption_from']);
@@ -218,9 +221,9 @@ class MPGR_Gift_Report {
             
             gifter.ID AS gifter_user_id,
             gifter.user_login AS gifter_username,
-            gifter.user_email AS gifter_email,
-            gifter_fname.meta_value AS gifter_first_name,
-            gifter_lname.meta_value AS gifter_last_name,
+            COALESCE(gifter.user_email, 'Deleted User') AS gifter_email,
+            COALESCE(gifter_fname.meta_value, '') AS gifter_first_name,
+            COALESCE(gifter_lname.meta_value, '') AS gifter_last_name,
             
             gift_product.ID AS product_id,
             gift_product.post_title AS product_name,
@@ -245,7 +248,12 @@ class MPGR_Gift_Report {
                 WHEN gift_status.meta_value = 'unclaimed' THEN 'Unclaimed'
                 WHEN gifter_txn.status = 'refunded' THEN 'Invalid (Refunded)'
                 ELSE 'Unknown'
-            END AS gift_status_display
+            END AS gift_status_display,
+            
+            CASE 
+                WHEN gifter.ID IS NULL THEN 'Deleted'
+                ELSE 'Active'
+            END AS gifter_status
 
         FROM 
             {$wpdb->prefix}mepr_transactions AS gifter_txn
@@ -255,7 +263,7 @@ class MPGR_Gift_Report {
                 ON gifter_txn.id = gift_meta.transaction_id 
                 AND gift_meta.meta_key IN ('_gift_status', '_gifter_id', '_gift_coupon_id')
             
-            INNER JOIN {$wpdb->users} AS gifter 
+            LEFT JOIN {$wpdb->users} AS gifter 
                 ON gifter_txn.user_id = gifter.ID
             
             LEFT JOIN {$wpdb->usermeta} AS gifter_fname 
@@ -364,7 +372,8 @@ class MPGR_Gift_Report {
             'Recipient Email',
             'Recipient First Name',
             'Recipient Last Name',
-            'Gift Status Display'
+            'Gift Status Display',
+            'Gifter Status'
         );
         
         // Write headers
@@ -497,6 +506,7 @@ class MPGR_Gift_Report {
         if (!empty($filters['recipient_email'])) {
             $active_filters[] = 'Recipient Email: ' . esc_html($filters['recipient_email']);
         }
+
         if (!empty($filters['redemption_from'])) {
             $active_filters[] = 'Redemption From: ' . esc_html($filters['redemption_from']);
         }
@@ -564,6 +574,8 @@ class MPGR_Gift_Report {
         echo '<label for="recipient_email">Recipient Email</label>';
         echo '<input type="email" id="recipient_email" name="recipient_email" value="' . esc_attr($filters['recipient_email'] ?? '') . '" placeholder="Enter recipient email">';
         echo '</div>';
+        
+
         
         // Redemption From filter
         echo '<div class="mpgr-filter-group">';
@@ -646,7 +658,11 @@ class MPGR_Gift_Report {
                 echo '<tr>';
                 echo '<td>' . esc_html($row['gift_transaction_id']) . '</td>';
                 echo '<td>' . esc_html($row['gift_purchase_date']) . '</td>';
-                echo '<td>' . esc_html($row['gifter_email']) . '</td>';
+                if ($row['gifter_email'] === 'Deleted User') {
+                    echo '<td><span class="mpgr-deleted-user">' . esc_html($row['gifter_email']) . '</span></td>';
+                } else {
+                    echo '<td>' . esc_html($row['gifter_email']) . '</td>';
+                }
                 echo '<td>' . esc_html($row['product_name']) . '</td>';
                 echo '<td>' . esc_html($row['coupon_code']) . '</td>';
                 echo '<td class="' . esc_attr($status_class) . '">' . esc_html($row['gift_status_display']) . '</td>';

@@ -52,6 +52,8 @@
             formData.append('recipient_email', recipientEmail);
         }
         
+
+        
         var redemptionFrom = $('#redemption_from').val();
         if (redemptionFrom) {
             formData.append('redemption_from', redemptionFrom);
@@ -128,6 +130,7 @@
         $('#product').val('');
         $('#gifter_email').val('');
         $('#recipient_email').val('');
+
         $('#redemption_from').val('');
         $('#redemption_to').val('');
         
