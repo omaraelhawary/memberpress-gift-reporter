@@ -507,7 +507,7 @@ class MPGR_Gift_Report {
         );
         
         // Write headers
-        fputcsv($output, $headers);
+        fputcsv($output, $headers, ',', '"', '\\');
         
         // Stream data in chunks to avoid memory issues
         $chunk_size = 1000;
@@ -546,7 +546,7 @@ class MPGR_Gift_Report {
                                 break;
                         }
                     }
-                    fputcsv($output, $translated_row);
+                    fputcsv($output, $translated_row, ',', '"', '\\');
                 }
             }
             
