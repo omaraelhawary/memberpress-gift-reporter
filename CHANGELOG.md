@@ -5,7 +5,7 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [1.1.0] - 2024-12-XX
+## [1.1.0] - 2025-08-26
 
 ### Added
 - **Comprehensive Filtering System**: 8 powerful filters for precise data analysis
@@ -41,37 +41,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **SQL Injection Prevention**: Better prepared statement usage
 - **XSS Protection**: Enhanced output escaping for all user inputs
 
-## [1.0.0] - 2024-01-XX
-
-### Added
-- Initial release of MemberPress Gift Reporter
-- Complete gift tracking and reporting functionality
-- CSV export functionality (all data)
-- REST API for programmatic access
-- Admin dashboard integration
-- Comprehensive documentation
-- WordPress coding standards compliance
-- Security best practices implementation
-
-### Features
-- **Gift Purchase Tracking**: Track all gift purchases with transaction details
-- **Recipient Information**: Link gift givers to recipients
-- **Status Monitoring**: Track claimed, unclaimed, and invalid gifts
-- **Revenue Reporting**: Calculate total revenue from gift sales
-- **CSV Export**: Download reports in spreadsheet format (all data)
-- **REST API**: Programmatic access to report data
-- **Admin Interface**: Clean, user-friendly dashboard
-
-### Technical Implementation
-- WordPress plugin architecture
-- MemberPress integration
-- Database optimization for large datasets
-- Responsive admin interface
-- Error handling and logging
-- Internationalization support
-- Security hardening
-
-## [1.0.0] - 2024-01-XX
+## [1.0.0] - 2025-08-25
 
 ### Added
 - Initial release of MemberPress Gift Reporter
