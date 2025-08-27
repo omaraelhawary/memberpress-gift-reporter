@@ -955,7 +955,7 @@ class MPGR_Gift_Report {
         echo '</div>';
         
         		// Export button
-		echo '<a href="#" class="mpgr-export-btn" onclick="mpgrExportCSV()">📥 ' . __( 'Download CSV Report', 'memberpress-gift-reporter' ) . '</a>';
+		echo '<a href="#" class="mpgr-export-btn" onclick="mpgrExportCSV()">&#128229; ' . __( 'Download CSV Report', 'memberpress-gift-reporter' ) . '</a>';
         
         if (!empty($this->report_data)) {
             			echo '<table class="mpgr-table">';
