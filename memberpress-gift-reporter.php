@@ -105,14 +105,14 @@ class MemberPressGiftReporter {
      */
 	public function memberpress_notice() {
 		echo '<div class="notice notice-error">';
-		echo '<p><strong>MemberPress Gift Reporter</strong> requires MemberPress to be installed and activated.</p>';
-		echo '<p>Please ensure that:</p>';
+		echo '<p><strong>' . __( 'MemberPress Gift Reporter', 'memberpress-gift-reporter' ) . '</strong> ' . __( 'requires MemberPress to be installed and activated.', 'memberpress-gift-reporter' ) . '</p>';
+		echo '<p>' . __( 'Please ensure that:', 'memberpress-gift-reporter' ) . '</p>';
 		echo '<ul style="margin-left: 20px;">';
-		echo '<li>MemberPress plugin is installed and activated</li>';
-		echo '<li>MemberPress is properly configured</li>';
-		echo '<li>You have a valid MemberPress license</li>';
+		echo '<li>' . __( 'MemberPress plugin is installed and activated', 'memberpress-gift-reporter' ) . '</li>';
+		echo '<li>' . __( 'MemberPress is properly configured', 'memberpress-gift-reporter' ) . '</li>';
+		echo '<li>' . __( 'You have a valid MemberPress license', 'memberpress-gift-reporter' ) . '</li>';
 		echo '</ul>';
-		echo '<p><a href="' . admin_url( 'plugins.php' ) . '">Go to Plugins</a> | <a href="https://memberpress.com/" target="_blank">Get MemberPress</a></p>';
+		echo '<p><a href="' . admin_url( 'plugins.php' ) . '">' . __( 'Go to Plugins', 'memberpress-gift-reporter' ) . '</a> | <a href="https://memberpress.com/" target="_blank">' . __( 'Get MemberPress', 'memberpress-gift-reporter' ) . '</a></p>';
 		echo '</div>';
 	}
     

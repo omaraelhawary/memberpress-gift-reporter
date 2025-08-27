@@ -61,9 +61,9 @@ class MPGR_Admin {
 	public function admin_notices() {
 		// Check if MemberPress Gifting is active.
 		if ( ! $this->is_gifting_active() ) {
-			echo '<div class="notice notice-warning is-dismissible">';
-			echo '<p><strong>MemberPress Gift Reporter:</strong> ' . __( 'MemberPress Gifting add-on is not active. This plugin requires the MemberPress Gifting add-on to function properly.', 'memberpress-gift-reporter' ) . '</p>';
-			echo '</div>';
+					echo '<div class="notice notice-warning is-dismissible">';
+		echo '<p><strong>' . __( 'MemberPress Gift Reporter:', 'memberpress-gift-reporter' ) . '</strong> ' . __( 'MemberPress Gifting add-on is not active. This plugin requires the MemberPress Gifting add-on to function properly.', 'memberpress-gift-reporter' ) . '</p>';
+		echo '</div>';
 		}
 	}
     
