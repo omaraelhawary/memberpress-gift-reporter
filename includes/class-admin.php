@@ -61,9 +61,9 @@ class MPGR_Admin {
 	public function admin_notices() {
 		// Check if MemberPress Gifting is active.
 		if ( ! $this->is_gifting_active() ) {
-			echo '<div class="notice notice-warning is-dismissible">';
-			echo '<p><strong>MemberPress Gift Reporter:</strong> ' . __( 'MemberPress Gifting add-on is not active. This plugin requires the MemberPress Gifting add-on to function properly.', 'memberpress-gift-reporter' ) . '</p>';
-			echo '</div>';
+					echo '<div class="notice notice-warning is-dismissible">';
+		echo '<p><strong>' . __( 'MemberPress Gift Reporter:', 'memberpress-gift-reporter' ) . '</strong> ' . __( 'MemberPress Gifting add-on is not active. This plugin requires the MemberPress Gifting add-on to function properly.', 'memberpress-gift-reporter' ) . '</p>';
+		echo '</div>';
 		}
 	}
     
@@ -73,6 +73,8 @@ class MPGR_Admin {
 	private function is_gifting_active() {
 		return class_exists( 'memberpress\gifting\models\Gift' );
 	}
+	
+
     
     /**
      * Admin page
@@ -92,6 +94,16 @@ class MPGR_Admin {
 			echo '</div>';
 			echo '</div>';
 			return;
+		}
+
+		// Verify nonce for filter requests (only when filters are being applied)
+		if (!empty($_GET['date_from']) || !empty($_GET['date_to']) || !empty($_GET['gift_status']) || 
+			!empty($_GET['product']) || !empty($_GET['gifter_email']) || !empty($_GET['recipient_email']) ||
+			!empty($_GET['redemption_from']) || !empty($_GET['redemption_to'])) {
+			
+			if (!wp_verify_nonce($_GET['_wpnonce'] ?? '', 'mpgr_filter_nonce')) {
+				wp_die(__('Security check failed. Please try again.', 'memberpress-gift-reporter'));
+			}
 		}
 
 		// Get filter parameters

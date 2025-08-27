@@ -11,6 +11,11 @@
      * Export CSV function
      */
     window.mpgrExportCSV = function() {
+        // Validate inputs before sending
+        if (!validateExportInputs()) {
+            return;
+        }
+
         // Show loading state
         var $btn = $('.mpgr-export-btn');
         var originalText = $btn.text();
@@ -51,6 +56,8 @@
         if (recipientEmail) {
             formData.append('recipient_email', recipientEmail);
         }
+        
+
         
         var redemptionFrom = $('#redemption_from').val();
         if (redemptionFrom) {
@@ -103,6 +110,56 @@
     };
 
     /**
+     * Validate export inputs
+     */
+    function validateExportInputs() {
+        var dateFrom = $('#date_from').val();
+        var dateTo = $('#date_to').val();
+        var gifterEmail = $('#gifter_email').val();
+        var recipientEmail = $('#recipient_email').val();
+        var redemptionFrom = $('#redemption_from').val();
+        var redemptionTo = $('#redemption_to').val();
+
+        // Validate date format (YYYY-MM-DD)
+        var dateRegex = /^\d{4}-\d{2}-\d{2}$/;
+        
+        if (dateFrom && !dateRegex.test(dateFrom)) {
+            showMessage('Invalid date format for Date From. Use YYYY-MM-DD format.', 'error');
+            return false;
+        }
+        
+        if (dateTo && !dateRegex.test(dateTo)) {
+            showMessage('Invalid date format for Date To. Use YYYY-MM-DD format.', 'error');
+            return false;
+        }
+        
+        if (redemptionFrom && !dateRegex.test(redemptionFrom)) {
+            showMessage('Invalid date format for Redemption From. Use YYYY-MM-DD format.', 'error');
+            return false;
+        }
+        
+        if (redemptionTo && !dateRegex.test(redemptionTo)) {
+            showMessage('Invalid date format for Redemption To. Use YYYY-MM-DD format.', 'error');
+            return false;
+        }
+
+        // Validate email format
+        var emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        
+        if (gifterEmail && !emailRegex.test(gifterEmail)) {
+            showMessage('Invalid email format for Gifter Email.', 'error');
+            return false;
+        }
+        
+        if (recipientEmail && !emailRegex.test(recipientEmail)) {
+            showMessage('Invalid email format for Recipient Email.', 'error');
+            return false;
+        }
+
+        return true;
+    }
+
+    /**
      * Show message function
      */
     function showMessage(message, type) {
@@ -128,6 +185,7 @@
         $('#product').val('');
         $('#gifter_email').val('');
         $('#recipient_email').val('');
+
         $('#redemption_from').val('');
         $('#redemption_to').val('');
         

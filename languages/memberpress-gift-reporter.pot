@@ -119,7 +119,3 @@ msgstr ""
 #: memberpress-gift-reporter.php:22
 msgid "memberpress-gift-reporter"
 msgstr ""
-
-#: memberpress-gift-reporter.php:23
-msgid "/languages"
-msgstr ""
