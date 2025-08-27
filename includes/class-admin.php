@@ -73,6 +73,8 @@ class MPGR_Admin {
 	private function is_gifting_active() {
 		return class_exists( 'memberpress\gifting\models\Gift' );
 	}
+	
+
     
     /**
      * Admin page
@@ -92,6 +94,11 @@ class MPGR_Admin {
 			echo '</div>';
 			echo '</div>';
 			return;
+		}
+
+		// Verify nonce for filter requests
+		if (!empty($_GET) && !wp_verify_nonce($_GET['_wpnonce'] ?? '', 'mpgr_filter_nonce')) {
+			wp_die(__('Security check failed. Please try again.', 'memberpress-gift-reporter'));
 		}
 
 		// Get filter parameters

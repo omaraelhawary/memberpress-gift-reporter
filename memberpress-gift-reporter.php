@@ -97,8 +97,6 @@ class MemberPressGiftReporter {
 			'MeprUser class' => class_exists( 'MeprUser' ),
 		);
 
-		// Debug information removed for security
-
 		return in_array( true, $checks, true );
 	}
     

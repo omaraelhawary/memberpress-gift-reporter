@@ -42,36 +42,20 @@ class MPGR_Gift_Report {
 			wp_die( __( 'Access denied', 'memberpress-gift-reporter' ) );
 		}
 
-		// Get filter parameters
-		$filters = array();
-		if (!empty($_POST['date_from'])) {
-			$filters['date_from'] = sanitize_text_field($_POST['date_from']);
-		}
-		if (!empty($_POST['date_to'])) {
-			$filters['date_to'] = sanitize_text_field($_POST['date_to']);
-		}
-		if (!empty($_POST['gift_status'])) {
-			$filters['gift_status'] = sanitize_text_field($_POST['gift_status']);
-		}
-		if (!empty($_POST['product'])) {
-			$filters['product'] = intval($_POST['product']);
-		}
-		if (!empty($_POST['gifter_email'])) {
-			$filters['gifter_email'] = sanitize_email($_POST['gifter_email']);
-		}
-		if (!empty($_POST['recipient_email'])) {
-			$filters['recipient_email'] = sanitize_email($_POST['recipient_email']);
+		// Check rate limiting
+		if ($this->is_rate_limited()) {
+			wp_die( __( 'Rate limit exceeded. Please wait before trying again.', 'memberpress-gift-reporter' ) );
 		}
 
-		if (!empty($_POST['redemption_from'])) {
-			$filters['redemption_from'] = sanitize_text_field($_POST['redemption_from']);
-		}
-		if (!empty($_POST['redemption_to'])) {
-			$filters['redemption_to'] = sanitize_text_field($_POST['redemption_to']);
-		}
+		// Get and sanitize filter parameters
+		$filters = $this->sanitize_ajax_filters($_POST);
 
-		$this->generate_report(0, 0, $filters);
-		$this->export_csv('memberpress_gift_report.csv', $filters);
+		try {
+			$this->generate_report(0, 0, $filters);
+			$this->export_csv('memberpress_gift_report.csv', $filters);
+		} catch (Exception $e) {
+			wp_die( __( 'Error generating export. Please try again.', 'memberpress-gift-reporter' ) );
+		}
 	}
     
     /**
@@ -82,12 +66,24 @@ class MPGR_Gift_Report {
             'methods' => 'GET',
             'callback' => array($this, 'rest_get_report'),
             'permission_callback' => array($this, 'rest_permission_check'),
+            'args' => array(
+                'nonce' => array(
+                    'required' => true,
+                    'sanitize_callback' => 'sanitize_text_field',
+                ),
+            ),
         ));
         
         register_rest_route('mpgr/v1', '/export', array(
             'methods' => 'POST',
             'callback' => array($this, 'rest_export_csv'),
             'permission_callback' => array($this, 'rest_permission_check'),
+            'args' => array(
+                'nonce' => array(
+                    'required' => true,
+                    'sanitize_callback' => 'sanitize_text_field',
+                ),
+            ),
         ));
     }
     
@@ -95,40 +91,161 @@ class MPGR_Gift_Report {
      * REST API permission check
      */
     public function rest_permission_check($request) {
-        return current_user_can('manage_options') && wp_verify_nonce($request->get_param('nonce'), 'mpgr_rest_nonce');
+        // Check if user is logged in and has proper capabilities
+        if (!is_user_logged_in() || !current_user_can('manage_options')) {
+            return false;
+        }
+        
+        // Verify nonce from header or parameter
+        $nonce = $request->get_header('X-WP-Nonce') ?: $request->get_param('nonce');
+        if (!$nonce || !wp_verify_nonce($nonce, 'mpgr_rest_nonce')) {
+            return false;
+        }
+        
+        // Add rate limiting check
+        if ($this->is_rate_limited()) {
+            return false;
+        }
+        
+        return true;
+    }
+    
+    /**
+     * Rate limiting check
+     */
+    private function is_rate_limited() {
+        $user_id = get_current_user_id();
+        $rate_limit_key = 'mpgr_rate_limit_' . $user_id;
+        $rate_limit_time = 60; // 1 minute
+        $max_requests = 10; // Max 10 requests per minute
+        
+        $current_time = time();
+        $requests = get_transient($rate_limit_key);
+        
+        if (!$requests) {
+            $requests = array();
+        }
+        
+        // Remove old requests
+        $requests = array_filter($requests, function($time) use ($current_time, $rate_limit_time) {
+            return ($current_time - $time) < $rate_limit_time;
+        });
+        
+        // Check if limit exceeded
+        if (count($requests) >= $max_requests) {
+            return true;
+        }
+        
+        // Add current request
+        $requests[] = $current_time;
+        set_transient($rate_limit_key, $requests, $rate_limit_time);
+        
+        return false;
     }
     
     /**
      * REST API get report
      */
     public function rest_get_report($request) {
-        // Verify nonce
-        if (!wp_verify_nonce($request->get_param('nonce'), 'mpgr_rest_nonce')) {
-            return new WP_Error('invalid_nonce', 'Invalid nonce', array('status' => 403));
+        try {
+            $data = $this->generate_report();
+            $summary = $this->get_summary();
+            
+            return array(
+                'success' => true,
+                'data' => $data,
+                'summary' => $summary
+            );
+        } catch (Exception $e) {
+            return new WP_Error('report_error', 'Unable to generate report', array('status' => 500));
         }
-        
-        $data = $this->generate_report();
-        $summary = $this->get_summary();
-        
-        return array(
-            'success' => true,
-            'data' => $data,
-            'summary' => $summary
-        );
     }
     
     /**
      * REST API export CSV
      */
     public function rest_export_csv($request) {
-        // Verify nonce
-        if (!wp_verify_nonce($request->get_param('nonce'), 'mpgr_rest_nonce')) {
-            return new WP_Error('invalid_nonce', 'Invalid nonce', array('status' => 403));
+        try {
+            $filters = $this->sanitize_export_filters($request);
+            $this->generate_report(0, 0, $filters);
+            $this->export_csv('memberpress_gift_report.csv', $filters);
+        } catch (Exception $e) {
+            return new WP_Error('export_error', 'Unable to export report', array('status' => 500));
+        }
+    }
+    
+    /**
+     * Sanitize export filters from REST API request
+     */
+    private function sanitize_export_filters($request) {
+        $filters = array();
+        
+        $filter_fields = array(
+            'date_from' => 'sanitize_text_field',
+            'date_to' => 'sanitize_text_field',
+            'gift_status' => 'sanitize_text_field',
+            'product' => 'intval',
+            'gifter_email' => 'sanitize_email',
+            'recipient_email' => 'sanitize_email',
+            'redemption_from' => 'sanitize_text_field',
+            'redemption_to' => 'sanitize_text_field',
+        );
+        
+        foreach ($filter_fields as $field => $sanitize_function) {
+            $value = $request->get_param($field);
+            if (!empty($value)) {
+                $filters[$field] = $sanitize_function($value);
+            }
         }
         
-        $this->generate_report();
-        $this->export_csv();
+        return $filters;
     }
+    
+    /**
+     * Sanitize AJAX filter parameters
+     */
+    private function sanitize_ajax_filters($post_data) {
+        $filters = array();
+        
+        $filter_fields = array(
+            'date_from' => 'sanitize_text_field',
+            'date_to' => 'sanitize_text_field',
+            'gift_status' => 'sanitize_text_field',
+            'product' => 'intval',
+            'gifter_email' => 'sanitize_email',
+            'recipient_email' => 'sanitize_email',
+            'redemption_from' => 'sanitize_text_field',
+            'redemption_to' => 'sanitize_text_field',
+        );
+        
+        foreach ($filter_fields as $field => $sanitize_function) {
+            if (!empty($post_data[$field])) {
+                $filters[$field] = $sanitize_function($post_data[$field]);
+            }
+        }
+        
+        return $filters;
+    }
+    
+    /**
+     * Validate date format
+     */
+    private function is_valid_date($date_string) {
+        if (empty($date_string)) {
+            return false;
+        }
+        
+        // Check if it's a valid date format (YYYY-MM-DD)
+        if (!preg_match('/^\d{4}-\d{2}-\d{2}$/', $date_string)) {
+            return false;
+        }
+        
+        // Check if the date is actually valid
+        $date = DateTime::createFromFormat('Y-m-d', $date_string);
+        return $date && $date->format('Y-m-d') === $date_string;
+    }
+    
+
     
     /**
      * Generate the gift report
@@ -153,17 +270,21 @@ class MPGR_Gift_Report {
         // Date From filter
         if (!empty($filters['date_from'])) {
             $date_from = sanitize_text_field($filters['date_from']);
-            // Convert date to proper format and add time to make it start of day
-            $date_from_formatted = date('Y-m-d 00:00:00', strtotime($date_from));
-            $where_conditions[] = $wpdb->prepare("gifter_txn.created_at >= %s", $date_from_formatted);
+            // Validate date format and convert to proper format
+            if ($this->is_valid_date($date_from)) {
+                $date_from_formatted = date('Y-m-d 00:00:00', strtotime($date_from));
+                $where_conditions[] = $wpdb->prepare("gifter_txn.created_at >= %s", $date_from_formatted);
+            }
         }
         
         // Date To filter
         if (!empty($filters['date_to'])) {
             $date_to = sanitize_text_field($filters['date_to']);
-            // Convert date to proper format and add time to make it end of day
-            $date_to_formatted = date('Y-m-d 23:59:59', strtotime($date_to));
-            $where_conditions[] = $wpdb->prepare("gifter_txn.created_at <= %s", $date_to_formatted);
+            // Validate date format and convert to proper format
+            if ($this->is_valid_date($date_to)) {
+                $date_to_formatted = date('Y-m-d 23:59:59', strtotime($date_to));
+                $where_conditions[] = $wpdb->prepare("gifter_txn.created_at <= %s", $date_to_formatted);
+            }
         }
         
         // Gift Status filter
@@ -195,17 +316,21 @@ class MPGR_Gift_Report {
         // Redemption From filter
         if (!empty($filters['redemption_from'])) {
             $redemption_from = sanitize_text_field($filters['redemption_from']);
-            // Convert date to proper format and add time to make it start of day
-            $redemption_from_formatted = date('Y-m-d 00:00:00', strtotime($redemption_from));
-            $where_conditions[] = $wpdb->prepare("redemption_txn.created_at >= %s", $redemption_from_formatted);
+            // Validate date format and convert to proper format
+            if ($this->is_valid_date($redemption_from)) {
+                $redemption_from_formatted = date('Y-m-d 00:00:00', strtotime($redemption_from));
+                $where_conditions[] = $wpdb->prepare("redemption_txn.created_at >= %s", $redemption_from_formatted);
+            }
         }
         
         // Redemption To filter
         if (!empty($filters['redemption_to'])) {
             $redemption_to = sanitize_text_field($filters['redemption_to']);
-            // Convert date to proper format and add time to make it end of day
-            $redemption_to_formatted = date('Y-m-d 23:59:59', strtotime($redemption_to));
-            $where_conditions[] = $wpdb->prepare("redemption_txn.created_at <= %s", $redemption_to_formatted);
+            // Validate date format and convert to proper format
+            if ($this->is_valid_date($redemption_to)) {
+                $redemption_to_formatted = date('Y-m-d 23:59:59', strtotime($redemption_to));
+                $where_conditions[] = $wpdb->prepare("redemption_txn.created_at <= %s", $redemption_to_formatted);
+            }
         }
         
         // Use a more inclusive approach to find all gift transactions
@@ -327,9 +452,14 @@ class MPGR_Gift_Report {
     public function export_csv($filename = 'memberpress_gift_report.csv', $filters = array()) {
         global $wpdb;
         
-        // Sanitize filename to prevent directory traversal
+        // Sanitize filename to prevent directory traversal and ensure it's a CSV
         $filename = sanitize_file_name($filename);
-        if (empty($filename) || strpos($filename, '.csv') === false) {
+        if (empty($filename) || !preg_match('/\.csv$/i', $filename)) {
+            $filename = 'memberpress_gift_report.csv';
+        }
+        
+        // Ensure filename doesn't contain path traversal attempts
+        if (strpos($filename, '..') !== false || strpos($filename, '/') !== false || strpos($filename, '\\') !== false) {
             $filename = 'memberpress_gift_report.csv';
         }
         
@@ -524,6 +654,7 @@ class MPGR_Gift_Report {
         
         echo '<form method="GET" action="">';
         echo '<input type="hidden" name="page" value="memberpress-gift-report">';
+        echo '<input type="hidden" name="_wpnonce" value="' . wp_create_nonce('mpgr_filter_nonce') . '">';
         
         echo '<div class="mpgr-filter-grid">';
         
