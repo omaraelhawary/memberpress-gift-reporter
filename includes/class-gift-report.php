@@ -421,7 +421,7 @@ class MPGR_Gift_Report {
 
     
     /**
-     * Generate the gift report
+     * Generate the gift report data
      */
     public function generate_report($limit = 1000, $offset = 0, $filters = array()) {
         global $wpdb;
@@ -435,10 +435,13 @@ class MPGR_Gift_Report {
         // Build WHERE clause for filters
         $where_conditions = array();
         $where_conditions[] = "gifter_txn.status IN ('complete', 'confirmed', 'refunded')";
+        // FIXED: Only include actual gift purchase transactions, not claim transactions
         $where_conditions[] = "(
             (gift_meta.meta_key = '_gift_status' AND gift_meta.meta_value IN ('unclaimed', 'claimed'))
-            OR gift_meta.meta_key IN ('_gifter_id', '_gift_coupon_id')
+            OR (gift_meta.meta_key = '_gift_coupon_id' AND gift_meta.meta_value IS NOT NULL)
         )";
+        // FIXED: Exclude transactions that are gift claims (€0.00 transactions with gift metadata)
+        $where_conditions[] = "gifter_txn.amount > 0";
         
         // Date From filter
         if (!empty($filters['date_from'])) {
@@ -506,8 +509,8 @@ class MPGR_Gift_Report {
             }
         }
         
-        // Use a more inclusive approach to find all gift transactions
-        // This matches the MemberPress dev team's approach but with better structure
+        // FIXED: Use a more precise approach to find only gift purchase transactions
+        // This ensures we only count the original gift purchases, not the claim transactions
         $query = "
         SELECT 
             gifter_txn.id AS gift_transaction_id,
@@ -526,8 +529,8 @@ class MPGR_Gift_Report {
             gift_product.ID AS product_id,
             gift_product.post_title AS product_name,
             
-            gift_coupon.ID AS coupon_id,
-            gift_coupon.post_title AS coupon_code,
+            coupon_meta.meta_value AS coupon_id,
+            COALESCE(gift_coupon.post_title, 'Deleted Coupon') AS coupon_code,
             
             COALESCE(gift_status.meta_value, 'unclaimed') AS gift_status,
             
@@ -537,7 +540,7 @@ class MPGR_Gift_Report {
             
             recipient.ID AS recipient_user_id,
             recipient.user_login AS recipient_username,
-            recipient.user_email AS recipient_email,
+            COALESCE(recipient.user_email, 'Deleted User') AS recipient_email,
             recipient_fname.meta_value AS recipient_first_name,
             recipient_lname.meta_value AS recipient_last_name,
             
@@ -556,10 +559,10 @@ class MPGR_Gift_Report {
         FROM 
             {$wpdb->prefix}mepr_transactions AS gifter_txn
             
-            -- Find transactions that have gift-related meta keys
+            -- Find transactions that have gift-related meta keys (only purchase transactions)
             INNER JOIN {$wpdb->prefix}mepr_transaction_meta AS gift_meta 
                 ON gifter_txn.id = gift_meta.transaction_id 
-                AND gift_meta.meta_key IN ('_gift_status', '_gifter_id', '_gift_coupon_id')
+                AND gift_meta.meta_key IN ('_gift_status', '_gift_coupon_id')
             
             LEFT JOIN {$wpdb->users} AS gifter 
                 ON gifter_txn.user_id = gifter.ID
@@ -575,22 +578,25 @@ class MPGR_Gift_Report {
             INNER JOIN {$wpdb->posts} AS gift_product 
                 ON gifter_txn.product_id = gift_product.ID
             
-            -- Get coupon information
+            -- Get coupon information (handle deleted coupons)
             LEFT JOIN {$wpdb->prefix}mepr_transaction_meta AS coupon_meta 
                 ON gifter_txn.id = coupon_meta.transaction_id 
                 AND coupon_meta.meta_key = '_gift_coupon_id'
             LEFT JOIN {$wpdb->posts} AS gift_coupon 
                 ON coupon_meta.meta_value = gift_coupon.ID
+                AND gift_coupon.post_status = 'publish'
             
             -- Get gift status
             LEFT JOIN {$wpdb->prefix}mepr_transaction_meta AS gift_status 
                 ON gifter_txn.id = gift_status.transaction_id 
                 AND gift_status.meta_key = '_gift_status'
             
-            -- Find redemption transaction for claimed gifts
+            -- FIXED: Find redemption transaction for claimed gifts using coupon ID directly
+            -- This handles cases where coupons have been deleted
             LEFT JOIN {$wpdb->prefix}mepr_transactions AS redemption_txn 
-                ON gift_coupon.ID = redemption_txn.coupon_id 
+                ON coupon_meta.meta_value = redemption_txn.coupon_id 
                 AND redemption_txn.status = 'complete'
+                AND redemption_txn.id != gifter_txn.id
             
             LEFT JOIN {$wpdb->users} AS recipient 
                 ON redemption_txn.user_id = recipient.ID
@@ -693,6 +699,31 @@ class MPGR_Gift_Report {
                 foreach ($data as $row) {
                     // Translate status values for CSV export
                     $translated_row = $row;
+                    
+                    // Format currency amounts for CSV export
+                    if (isset($translated_row['gift_amount'])) {
+                        $translated_row['gift_amount'] = $this->format_currency($translated_row['gift_amount']);
+                    }
+                    if (isset($translated_row['gift_total'])) {
+                        $translated_row['gift_total'] = $this->format_currency($translated_row['gift_total']);
+                    }
+                    
+                    // Handle deleted coupons in CSV export
+                    if (isset($translated_row['coupon_code']) && $translated_row['coupon_code'] === 'Deleted Coupon') {
+                        $translated_row['coupon_code'] = __( 'Deleted Coupon', 'memberpress-gift-reporter' );
+                    }
+                    
+                    // Handle deleted recipients in CSV export
+                    if (isset($translated_row['recipient_email']) && $translated_row['recipient_email'] === 'Deleted User') {
+                        $translated_row['recipient_email'] = __( 'Deleted User', 'memberpress-gift-reporter' );
+                    }
+                    
+                    // Handle recipient email for unclaimed gifts
+                    if (isset($translated_row['gift_status']) && $translated_row['gift_status'] !== 'claimed') {
+                        $translated_row['recipient_email'] = __( 'N/A', 'memberpress-gift-reporter' );
+                        $translated_row['redemption_date'] = __( 'N/A', 'memberpress-gift-reporter' );
+                    }
+                    
                     if (isset($translated_row['gift_status_display'])) {
                         switch ($translated_row['gift_status_display']) {
                             case 'Claimed':
@@ -757,8 +788,46 @@ class MPGR_Gift_Report {
             'claimed_gifts' => $claimed_gifts,
             'unclaimed_gifts' => $unclaimed_gifts,
             'claim_rate' => $total_gifts > 0 ? round(($claimed_gifts / $total_gifts) * 100, 2) : 0,
-            'total_revenue' => $total_revenue
+            'total_revenue' => $total_revenue,
+            'total_revenue_formatted' => $this->format_currency($total_revenue)
         );
+    }
+    
+    /**
+     * Format currency using MemberPress settings
+     * 
+     * @param float $amount The amount to format
+     * @param bool $show_symbol Whether to show currency symbol
+     * @return string Formatted currency string
+     */
+    private function format_currency($amount, $show_symbol = true) {
+        // Use MemberPress's currency formatting function
+        if (class_exists('MeprAppHelper')) {
+            return MeprAppHelper::format_currency($amount, $show_symbol);
+        }
+        
+        // Fallback if MemberPress helper is not available
+        $mepr_options = MeprOptions::fetch();
+        $symbol = $mepr_options->currency_symbol;
+        $symbol_after = $mepr_options->currency_symbol_after;
+        
+        // Format the number
+        if (MeprUtils::is_zero_decimal_currency()) {
+            $formatted_amount = number_format($amount, 0);
+        } else {
+            $formatted_amount = number_format($amount, 2);
+        }
+        
+        // Add currency symbol
+        if ($show_symbol) {
+            if ($symbol_after) {
+                return $formatted_amount . $symbol;
+            } else {
+                return $symbol . $formatted_amount;
+            }
+        }
+        
+        return $formatted_amount;
     }
     
     /**
@@ -778,7 +847,8 @@ class MPGR_Gift_Report {
         WHERE 
             p.post_type = 'memberpressproduct'
             AND p.post_status = 'publish'
-            AND tm.meta_key IN ('_gift_status', '_gifter_id', '_gift_coupon_id')
+            AND t.amount > 0
+            AND tm.meta_key IN ('_gift_status', '_gift_coupon_id')
         ORDER BY 
             p.post_title ASC
         ";
@@ -951,7 +1021,7 @@ class MPGR_Gift_Report {
 		echo '<p><strong>' . __( 'Claimed:', 'memberpress-gift-reporter' ) . '</strong> ' . $summary['claimed_gifts'] . '</p>';
 		echo '<p><strong>' . __( 'Unclaimed:', 'memberpress-gift-reporter' ) . '</strong> ' . $summary['unclaimed_gifts'] . '</p>';
 		echo '<p><strong>' . __( 'Claim Rate:', 'memberpress-gift-reporter' ) . '</strong> ' . $summary['claim_rate'] . '%</p>';
-		echo '<p><strong>' . __( 'Total Revenue:', 'memberpress-gift-reporter' ) . '</strong> $' . number_format($summary['total_revenue'], 2) . '</p>';
+		echo '<p><strong>' . __( 'Total Revenue:', 'memberpress-gift-reporter' ) . '</strong> ' . $summary['total_revenue_formatted'] . '</p>';
         echo '</div>';
         
         		// Export button
@@ -996,7 +1066,11 @@ class MPGR_Gift_Report {
                     echo '<td>' . esc_html($row['gifter_email']) . '</td>';
                 }
                 echo '<td>' . esc_html($row['product_name']) . '</td>';
-                echo '<td>' . esc_html($row['coupon_code']) . '</td>';
+                if ($row['coupon_code'] === 'Deleted Coupon') {
+                    echo '<td><span class="mpgr-deleted-coupon">' . __( 'Deleted Coupon', 'memberpress-gift-reporter' ) . '</span></td>';
+                } else {
+                    echo '<td>' . esc_html($row['coupon_code']) . '</td>';
+                }
                 // Translate status display
                 $status_display = $row['gift_status_display'];
                 switch ($status_display) {
@@ -1014,9 +1088,18 @@ class MPGR_Gift_Report {
                         break;
                 }
                 echo '<td class="' . esc_attr($status_class) . '">' . esc_html($status_display) . '</td>';
-                echo '<td>' . esc_html($row['recipient_email'] ?: __( 'N/A', 'memberpress-gift-reporter' )) . '</td>';
-                echo '<td>' . esc_html($row['redemption_date'] ?: __( 'N/A', 'memberpress-gift-reporter' )) . '</td>';
-                echo '<td>$' . number_format($row['gift_total'], 2) . '</td>';
+                if ($row['gift_status'] === 'claimed') {
+                    if ($row['recipient_email'] === 'Deleted User') {
+                        echo '<td><span class="mpgr-deleted-user">' . __( 'Deleted User', 'memberpress-gift-reporter' ) . '</span></td>';
+                    } else {
+                        echo '<td>' . esc_html($row['recipient_email']) . '</td>';
+                    }
+                    echo '<td>' . esc_html($row['redemption_date'] ?: __( 'N/A', 'memberpress-gift-reporter' )) . '</td>';
+                } else {
+                    echo '<td>' . __( 'N/A', 'memberpress-gift-reporter' ) . '</td>';
+                    echo '<td>' . __( 'N/A', 'memberpress-gift-reporter' ) . '</td>';
+                }
+                echo '<td>' . esc_html($this->format_currency($row['gift_total'])) . '</td>';
                 echo '</tr>';
             }
             
