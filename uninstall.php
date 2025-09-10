@@ -33,11 +33,3 @@ $role = get_role( 'administrator' );
 if ( $role ) {
 	$role->remove_cap( 'view_memberpress_gift_reports' );
 }
-
-// Note: We do NOT delete any MemberPress transaction data
-// as this belongs to the MemberPress plugin, not our plugin.
-
-// Log the uninstall for debugging (optional).
-if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
-	error_log( 'MemberPress Gift Reporter plugin uninstalled successfully' );
-}

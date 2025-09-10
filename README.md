@@ -1,15 +1,14 @@
-# MemberPress Gift Reporter
+=== MemberPress Gift Reporter ===
+Contributors: omaraelhawary
+Tags: memberpress, gifting, reports, analytics, csv export
+Requires at least: 5.0
+Tested up to: 6.8
+Requires PHP: 7.4
+Stable tag: 1.1.0
+License: GPLv2 or later
+License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
 A WordPress plugin that generates comprehensive reports for the MemberPress Gifting add-on, showing the linkage between gift givers and recipients.
-
-**Contributors:** omaraelhawary  
-**Tags:** memberpress, gifting, reports, analytics, csv export  
-**Requires at least:** 5.0  
-**Tested up to:** 6.4  
-**Requires PHP:** 7.4  
-**Stable tag:** 1.1.0  
-**License:** GPLv2 or later  
-**License URI:** https://www.gnu.org/licenses/gpl-2.0.html
 
 ## 🎁 Features
 
