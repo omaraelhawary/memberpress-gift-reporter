@@ -13,7 +13,6 @@
  * Requires at least: 5.0
  * Tested up to: 6.4
  * Requires PHP: 7.4
- * Network: false
  * 
  * @package MemberPressGiftReporter
  * @version 1.1.0
@@ -105,14 +104,14 @@ class MemberPressGiftReporter {
      */
 	public function memberpress_notice() {
 		echo '<div class="notice notice-error">';
-		echo '<p><strong>' . __( 'MemberPress Gift Reporter', 'memberpress-gift-reporter' ) . '</strong> ' . __( 'requires MemberPress to be installed and activated.', 'memberpress-gift-reporter' ) . '</p>';
-		echo '<p>' . __( 'Please ensure that:', 'memberpress-gift-reporter' ) . '</p>';
+		echo '<p><strong>' . esc_html__( 'MemberPress Gift Reporter', 'memberpress-gift-reporter' ) . '</strong> ' . esc_html__( 'requires MemberPress to be installed and activated.', 'memberpress-gift-reporter' ) . '</p>';
+		echo '<p>' . esc_html__( 'Please ensure that:', 'memberpress-gift-reporter' ) . '</p>';
 		echo '<ul style="margin-left: 20px;">';
-		echo '<li>' . __( 'MemberPress plugin is installed and activated', 'memberpress-gift-reporter' ) . '</li>';
-		echo '<li>' . __( 'MemberPress is properly configured', 'memberpress-gift-reporter' ) . '</li>';
-		echo '<li>' . __( 'You have a valid MemberPress license', 'memberpress-gift-reporter' ) . '</li>';
+		echo '<li>' . esc_html__( 'MemberPress plugin is installed and activated', 'memberpress-gift-reporter' ) . '</li>';
+		echo '<li>' . esc_html__( 'MemberPress is properly configured', 'memberpress-gift-reporter' ) . '</li>';
+		echo '<li>' . esc_html__( 'You have a valid MemberPress license', 'memberpress-gift-reporter' ) . '</li>';
 		echo '</ul>';
-		echo '<p><a href="' . admin_url( 'plugins.php' ) . '">' . __( 'Go to Plugins', 'memberpress-gift-reporter' ) . '</a> | <a href="https://memberpress.com/" target="_blank">' . __( 'Get MemberPress', 'memberpress-gift-reporter' ) . '</a></p>';
+		echo '<p><a href="' . esc_url( admin_url( 'plugins.php' ) ) . '">' . esc_html__( 'Go to Plugins', 'memberpress-gift-reporter' ) . '</a> | <a href="https://memberpress.com/" target="_blank">' . esc_html__( 'Get MemberPress', 'memberpress-gift-reporter' ) . '</a></p>';
 		echo '</div>';
 	}
     
@@ -120,8 +119,7 @@ class MemberPressGiftReporter {
      * Load the plugin
      */
 	public function load_plugin() {
-		// Load text domain for internationalization.
-		load_plugin_textdomain( 'memberpress-gift-reporter', false, dirname( plugin_basename( __FILE__ ) ) . '/languages' );
+		// Text domain is automatically loaded by WordPress for plugins hosted on WordPress.org
 
 		// Load the main report class.
 		require_once MPGR_PLUGIN_PATH . 'includes/class-gift-report.php';

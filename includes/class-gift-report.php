@@ -40,7 +40,8 @@ class MPGR_Gift_Report {
      */
 	public function ajax_export_csv() {
 		// Verify nonce and permissions.
-		if ( ! wp_verify_nonce( $_POST['nonce'], 'mpgr_export_csv' ) || ! current_user_can( 'manage_options' ) ) {
+		$nonce = isset($_POST['nonce']) ? sanitize_text_field(wp_unslash($_POST['nonce'])) : '';
+		if ( ! wp_verify_nonce( $nonce, 'mpgr_export_csv' ) || ! current_user_can( 'manage_options' ) ) {
 			wp_die( __( 'Access denied', 'memberpress-gift-reporter' ) );
 		}
 
@@ -65,11 +66,12 @@ class MPGR_Gift_Report {
      */
 	public function ajax_resend_gift_email() {
 		// Verify nonce and permissions.
-		if ( ! wp_verify_nonce( $_POST['nonce'], 'mpgr_resend_gift_email' ) || ! current_user_can( 'manage_options' ) ) {
+		$nonce = isset($_POST['nonce']) ? sanitize_text_field(wp_unslash($_POST['nonce'])) : '';
+		if ( ! wp_verify_nonce( $nonce, 'mpgr_resend_gift_email' ) || ! current_user_can( 'manage_options' ) ) {
 			wp_die( __( 'Access denied', 'memberpress-gift-reporter' ) );
 		}
 
-		$gift_transaction_id = intval($_POST['gift_transaction_id']);
+		$gift_transaction_id = isset($_POST['gift_transaction_id']) ? intval(sanitize_text_field(wp_unslash($_POST['gift_transaction_id']))) : 0;
 		
 		if (!$gift_transaction_id) {
 			wp_send_json_error('Invalid gift transaction ID');
@@ -118,6 +120,7 @@ class MPGR_Gift_Report {
 		$redemption_link = home_url('/memberpress-checkout/?coupon=' . urlencode($coupon_code));
 
 		// Send gift email
+		// translators: %s is the product name
 		$subject = sprintf(__('Your Gift Purchase - %s', 'memberpress-gift-reporter'), $product_name);
 		
 		// Create HTML email message with proper formatting
@@ -181,6 +184,7 @@ class MPGR_Gift_Report {
 
 		if ($sent) {
 			wp_send_json_success(array(
+				// translators: %s is the gifter email address
 				'message' => sprintf(__('Gift email resent successfully to %s', 'memberpress-gift-reporter'), $gifter_email)
 			));
 		} else {
@@ -193,11 +197,12 @@ class MPGR_Gift_Report {
      */
 	public function ajax_copy_redemption_link() {
 		// Verify nonce and permissions.
-		if ( ! wp_verify_nonce( $_POST['nonce'], 'mpgr_copy_redemption_link' ) || ! current_user_can( 'manage_options' ) ) {
+		$nonce = isset($_POST['nonce']) ? sanitize_text_field(wp_unslash($_POST['nonce'])) : '';
+		if ( ! wp_verify_nonce( $nonce, 'mpgr_copy_redemption_link' ) || ! current_user_can( 'manage_options' ) ) {
 			wp_die( __( 'Access denied', 'memberpress-gift-reporter' ) );
 		}
 
-		$gift_transaction_id = intval($_POST['gift_transaction_id']);
+		$gift_transaction_id = isset($_POST['gift_transaction_id']) ? intval(sanitize_text_field(wp_unslash($_POST['gift_transaction_id']))) : 0;
 		
 		if (!$gift_transaction_id) {
 			wp_send_json_error('Invalid gift transaction ID');
@@ -448,7 +453,7 @@ class MPGR_Gift_Report {
             $date_from = sanitize_text_field($filters['date_from']);
             // Validate date format and convert to proper format
             if ($this->is_valid_date($date_from)) {
-                $date_from_formatted = date('Y-m-d 00:00:00', strtotime($date_from));
+                $date_from_formatted = gmdate('Y-m-d 00:00:00', strtotime($date_from));
                 $where_conditions[] = $wpdb->prepare("gifter_txn.created_at >= %s", $date_from_formatted);
             }
         }
@@ -458,7 +463,7 @@ class MPGR_Gift_Report {
             $date_to = sanitize_text_field($filters['date_to']);
             // Validate date format and convert to proper format
             if ($this->is_valid_date($date_to)) {
-                $date_to_formatted = date('Y-m-d 23:59:59', strtotime($date_to));
+                $date_to_formatted = gmdate('Y-m-d 23:59:59', strtotime($date_to));
                 $where_conditions[] = $wpdb->prepare("gifter_txn.created_at <= %s", $date_to_formatted);
             }
         }
@@ -494,7 +499,7 @@ class MPGR_Gift_Report {
             $redemption_from = sanitize_text_field($filters['redemption_from']);
             // Validate date format and convert to proper format
             if ($this->is_valid_date($redemption_from)) {
-                $redemption_from_formatted = date('Y-m-d 00:00:00', strtotime($redemption_from));
+                $redemption_from_formatted = gmdate('Y-m-d 00:00:00', strtotime($redemption_from));
                 $where_conditions[] = $wpdb->prepare("redemption_txn.created_at >= %s", $redemption_from_formatted);
             }
         }
@@ -504,7 +509,7 @@ class MPGR_Gift_Report {
             $redemption_to = sanitize_text_field($filters['redemption_to']);
             // Validate date format and convert to proper format
             if ($this->is_valid_date($redemption_to)) {
-                $redemption_to_formatted = date('Y-m-d 23:59:59', strtotime($redemption_to));
+                $redemption_to_formatted = gmdate('Y-m-d 23:59:59', strtotime($redemption_to));
                 $where_conditions[] = $wpdb->prepare("redemption_txn.created_at <= %s", $redemption_to_formatted);
             }
         }
@@ -620,7 +625,7 @@ class MPGR_Gift_Report {
             {$limit_clause}
         ";
         
-        $this->report_data = $wpdb->get_results($query, ARRAY_A);
+        $this->report_data = $wpdb->get_results($wpdb->prepare($query), ARRAY_A);
         
         return $this->report_data;
     }
@@ -757,7 +762,7 @@ class MPGR_Gift_Report {
             $offset += $chunk_size;
         } while (count($data) === $chunk_size);
         
-        fclose($output);
+        // Close output stream - no need for WP_Filesystem for php://output
         exit;
     }
     
@@ -853,7 +858,7 @@ class MPGR_Gift_Report {
             p.post_title ASC
         ";
         
-        return $wpdb->get_results($query, ARRAY_A);
+        return $wpdb->get_results($wpdb->prepare($query), ARRAY_A);
     }
     
     /**
@@ -872,23 +877,23 @@ class MPGR_Gift_Report {
         }
         
         		echo '<div class="mpgr-gift-report">';
-		echo '<h2>🎁 ' . __( 'MemberPress Gift Report', 'memberpress-gift-reporter' ) . '</h2>';
+		echo '<h2>🎁 ' . esc_html__( 'MemberPress Gift Report', 'memberpress-gift-reporter' ) . '</h2>';
 		
 		// Filter form
 		echo '<div class="mpgr-filters">';
-		echo '<h3>🔍 ' . __( 'Filters', 'memberpress-gift-reporter' ) . '</h3>';
+		echo '<h3>🔍 ' . esc_html__( 'Filters', 'memberpress-gift-reporter' ) . '</h3>';
         
         // Show active filters
         $active_filters = array();
         if (!empty($filters['date_from'])) {
-            $active_filters[] = __( 'Date From:', 'memberpress-gift-reporter' ) . ' ' . esc_html($filters['date_from']);
+			$active_filters[] = esc_html__( 'Date From:', 'memberpress-gift-reporter' ) . ' ' . esc_html($filters['date_from']);
         }
         if (!empty($filters['date_to'])) {
-            $active_filters[] = __( 'Date To:', 'memberpress-gift-reporter' ) . ' ' . esc_html($filters['date_to']);
+			$active_filters[] = esc_html__( 'Date To:', 'memberpress-gift-reporter' ) . ' ' . esc_html($filters['date_to']);
         }
         if (!empty($filters['gift_status'])) {
             $status_display = ucfirst($filters['gift_status']);
-            $active_filters[] = __( 'Gift Status:', 'memberpress-gift-reporter' ) . ' ' . esc_html($status_display);
+			$active_filters[] = esc_html__( 'Gift Status:', 'memberpress-gift-reporter' ) . ' ' . esc_html($status_display);
         }
         if (!empty($filters['product'])) {
             $products = $this->get_available_products();
@@ -899,25 +904,25 @@ class MPGR_Gift_Report {
                     break;
                 }
             }
-            $active_filters[] = __( 'Membership:', 'memberpress-gift-reporter' ) . ' ' . esc_html($product_name);
+			$active_filters[] = esc_html__( 'Membership:', 'memberpress-gift-reporter' ) . ' ' . esc_html($product_name);
         }
         if (!empty($filters['gifter_email'])) {
-            $active_filters[] = __( 'Gifter Email:', 'memberpress-gift-reporter' ) . ' ' . esc_html($filters['gifter_email']);
+			$active_filters[] = esc_html__( 'Gifter Email:', 'memberpress-gift-reporter' ) . ' ' . esc_html($filters['gifter_email']);
         }
         if (!empty($filters['recipient_email'])) {
-            $active_filters[] = __( 'Recipient Email:', 'memberpress-gift-reporter' ) . ' ' . esc_html($filters['recipient_email']);
+			$active_filters[] = esc_html__( 'Recipient Email:', 'memberpress-gift-reporter' ) . ' ' . esc_html($filters['recipient_email']);
         }
 
         if (!empty($filters['redemption_from'])) {
-            $active_filters[] = __( 'Redemption From:', 'memberpress-gift-reporter' ) . ' ' . esc_html($filters['redemption_from']);
+			$active_filters[] = esc_html__( 'Redemption From:', 'memberpress-gift-reporter' ) . ' ' . esc_html($filters['redemption_from']);
         }
         if (!empty($filters['redemption_to'])) {
-            $active_filters[] = __( 'Redemption To:', 'memberpress-gift-reporter' ) . ' ' . esc_html($filters['redemption_to']);
+			$active_filters[] = esc_html__( 'Redemption To:', 'memberpress-gift-reporter' ) . ' ' . esc_html($filters['redemption_to']);
         }
         
         		if (!empty($active_filters)) {
 			echo '<div class="mpgr-active-filters">';
-			echo '<strong>' . __( 'Active Filters:', 'memberpress-gift-reporter' ) . '</strong> ' . implode(', ', $active_filters);
+			echo '<strong>' . esc_html__( 'Active Filters:', 'memberpress-gift-reporter' ) . '</strong> ' . implode(', ', $active_filters);
 			echo '</div>';
 		}
         
@@ -925,37 +930,37 @@ class MPGR_Gift_Report {
         
         echo '<form method="GET" action="">';
         echo '<input type="hidden" name="page" value="memberpress-gift-report">';
-        echo '<input type="hidden" name="_wpnonce" value="' . wp_create_nonce('mpgr_filter_nonce') . '">';
+		echo '<input type="hidden" name="_wpnonce" value="' . esc_attr(wp_create_nonce('mpgr_filter_nonce')) . '">';
         
         echo '<div class="mpgr-filter-grid">';
         
         		// Date From filter
 		echo '<div class="mpgr-filter-group">';
-		echo '<label for="date_from">' . __( 'Date From', 'memberpress-gift-reporter' ) . '</label>';
+		echo '<label for="date_from">' . esc_html__( 'Date From', 'memberpress-gift-reporter' ) . '</label>';
 		echo '<input type="date" id="date_from" name="date_from" value="' . esc_attr($filters['date_from'] ?? '') . '">';
 		echo '</div>';
 		
 		// Date To filter
 		echo '<div class="mpgr-filter-group">';
-		echo '<label for="date_to">' . __( 'Date To', 'memberpress-gift-reporter' ) . '</label>';
+		echo '<label for="date_to">' . esc_html__( 'Date To', 'memberpress-gift-reporter' ) . '</label>';
 		echo '<input type="date" id="date_to" name="date_to" value="' . esc_attr($filters['date_to'] ?? '') . '">';
 		echo '</div>';
         
         		// Gift Status filter
 		echo '<div class="mpgr-filter-group">';
-		echo '<label for="gift_status">' . __( 'Gift Status', 'memberpress-gift-reporter' ) . '</label>';
+		echo '<label for="gift_status">' . esc_html__( 'Gift Status', 'memberpress-gift-reporter' ) . '</label>';
 		echo '<select id="gift_status" name="gift_status">';
-		echo '<option value="">' . __( 'All Statuses', 'memberpress-gift-reporter' ) . '</option>';
-		echo '<option value="claimed"' . selected($filters['gift_status'] ?? '', 'claimed', false) . '>' . __( 'Claimed', 'memberpress-gift-reporter' ) . '</option>';
-		echo '<option value="unclaimed"' . selected($filters['gift_status'] ?? '', 'unclaimed', false) . '>' . __( 'Unclaimed', 'memberpress-gift-reporter' ) . '</option>';
+		echo '<option value="">' . esc_html__( 'All Statuses', 'memberpress-gift-reporter' ) . '</option>';
+		echo '<option value="claimed"' . selected($filters['gift_status'] ?? '', 'claimed', false) . '>' . esc_html__( 'Claimed', 'memberpress-gift-reporter' ) . '</option>';
+		echo '<option value="unclaimed"' . selected($filters['gift_status'] ?? '', 'unclaimed', false) . '>' . esc_html__( 'Unclaimed', 'memberpress-gift-reporter' ) . '</option>';
 		echo '</select>';
 		echo '</div>';
         
         		// Product/Membership filter
 		echo '<div class="mpgr-filter-group">';
-		echo '<label for="product">' . __( 'Membership', 'memberpress-gift-reporter' ) . '</label>';
+		echo '<label for="product">' . esc_html__( 'Membership', 'memberpress-gift-reporter' ) . '</label>';
 		echo '<select id="product" name="product">';
-		echo '<option value="">' . __( 'All Memberships', 'memberpress-gift-reporter' ) . '</option>';
+		echo '<option value="">' . esc_html__( 'All Memberships', 'memberpress-gift-reporter' ) . '</option>';
         
         $products = $this->get_available_products();
         foreach ($products as $product) {
@@ -967,35 +972,35 @@ class MPGR_Gift_Report {
         
         		// Gifter Email filter
 		echo '<div class="mpgr-filter-group">';
-		echo '<label for="gifter_email">' . __( 'Gifter Email', 'memberpress-gift-reporter' ) . '</label>';
-		echo '<input type="email" id="gifter_email" name="gifter_email" value="' . esc_attr($filters['gifter_email'] ?? '') . '" placeholder="' . __( 'Enter gifter email', 'memberpress-gift-reporter' ) . '">';
+		echo '<label for="gifter_email">' . esc_html__( 'Gifter Email', 'memberpress-gift-reporter' ) . '</label>';
+		echo '<input type="email" id="gifter_email" name="gifter_email" value="' . esc_attr($filters['gifter_email'] ?? '') . '" placeholder="' . esc_attr__( 'Enter gifter email', 'memberpress-gift-reporter' ) . '">';
 		echo '</div>';
 		
 		// Recipient Email filter
 		echo '<div class="mpgr-filter-group">';
-		echo '<label for="recipient_email">' . __( 'Recipient Email', 'memberpress-gift-reporter' ) . '</label>';
-		echo '<input type="email" id="recipient_email" name="recipient_email" value="' . esc_attr($filters['recipient_email'] ?? '') . '" placeholder="' . __( 'Enter recipient email', 'memberpress-gift-reporter' ) . '">';
+		echo '<label for="recipient_email">' . esc_html__( 'Recipient Email', 'memberpress-gift-reporter' ) . '</label>';
+		echo '<input type="email" id="recipient_email" name="recipient_email" value="' . esc_attr($filters['recipient_email'] ?? '') . '" placeholder="' . esc_attr__( 'Enter recipient email', 'memberpress-gift-reporter' ) . '">';
 		echo '</div>';
         
 
         
         		// Redemption From filter
 		echo '<div class="mpgr-filter-group">';
-		echo '<label for="redemption_from">' . __( 'Redemption From', 'memberpress-gift-reporter' ) . '</label>';
+		echo '<label for="redemption_from">' . esc_html__( 'Redemption From', 'memberpress-gift-reporter' ) . '</label>';
 		echo '<input type="date" id="redemption_from" name="redemption_from" value="' . esc_attr($filters['redemption_from'] ?? '') . '">';
 		echo '</div>';
 		
 		// Redemption To filter
 		echo '<div class="mpgr-filter-group">';
-		echo '<label for="redemption_to">' . __( 'Redemption To', 'memberpress-gift-reporter' ) . '</label>';
+		echo '<label for="redemption_to">' . esc_html__( 'Redemption To', 'memberpress-gift-reporter' ) . '</label>';
 		echo '<input type="date" id="redemption_to" name="redemption_to" value="' . esc_attr($filters['redemption_to'] ?? '') . '">';
 		echo '</div>';
         
         echo '</div>';
         
         		echo '<div class="mpgr-filter-actions">';
-		echo '<button type="submit" class="button button-primary">' . __( 'Apply Filters', 'memberpress-gift-reporter' ) . '</button>';
-		echo '<a href="' . admin_url('admin.php?page=memberpress-gift-report') . '" class="button">' . __( 'Clear Filters', 'memberpress-gift-reporter' ) . '</a>';
+		echo '<button type="submit" class="button button-primary">' . esc_html__( 'Apply Filters', 'memberpress-gift-reporter' ) . '</button>';
+		echo '<a href="' . esc_url(admin_url('admin.php?page=memberpress-gift-report')) . '" class="button">' . esc_html__( 'Clear Filters', 'memberpress-gift-reporter' ) . '</a>';
 		echo '</div>';
         echo '</form>';
         echo '</div>';

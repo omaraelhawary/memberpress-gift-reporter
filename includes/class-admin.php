@@ -50,7 +50,7 @@ class MPGR_Admin {
      */
 	public function add_plugin_links( $links ) {
 		$plugin_links = array(
-			'<a href="' . admin_url( 'admin.php?page=memberpress-gift-report' ) . '">' . __( 'View Report', 'memberpress-gift-reporter' ) . '</a>',
+			'<a href="' . esc_url( admin_url( 'admin.php?page=memberpress-gift-report' ) ) . '">' . esc_html__( 'View Report', 'memberpress-gift-reporter' ) . '</a>',
 		);
 		return array_merge( $plugin_links, $links );
 	}
@@ -62,7 +62,7 @@ class MPGR_Admin {
 		// Check if MemberPress Gifting is active.
 		if ( ! $this->is_gifting_active() ) {
 					echo '<div class="notice notice-warning is-dismissible">';
-		echo '<p><strong>' . __( 'MemberPress Gift Reporter:', 'memberpress-gift-reporter' ) . '</strong> ' . __( 'MemberPress Gifting add-on is not active. This plugin requires the MemberPress Gifting add-on to function properly.', 'memberpress-gift-reporter' ) . '</p>';
+			echo '<p><strong>' . esc_html__( 'MemberPress Gift Reporter:', 'memberpress-gift-reporter' ) . '</strong> ' . esc_html__( 'MemberPress Gifting add-on is not active. This plugin requires the MemberPress Gifting add-on to function properly.', 'memberpress-gift-reporter' ) . '</p>';
 		echo '</div>';
 		}
 	}
@@ -82,7 +82,7 @@ class MPGR_Admin {
 	public function admin_page() {
 		// Check permissions.
 		if ( ! current_user_can( 'manage_options' ) ) {
-			wp_die( __( 'You do not have sufficient permissions to access this page.', 'memberpress-gift-reporter' ) );
+			wp_die( esc_html__( 'You do not have sufficient permissions to access this page.', 'memberpress-gift-reporter' ) );
 		}
 
 		echo '<div class="wrap">';
@@ -90,7 +90,7 @@ class MPGR_Admin {
 		// Check if MemberPress Gifting is active.
 		if ( ! $this->is_gifting_active() ) {
 			echo '<div class="notice notice-error">';
-			echo '<p>' . __( 'MemberPress Gifting add-on is not active. Please activate it to use this report.', 'memberpress-gift-reporter' ) . '</p>';
+			echo '<p>' . esc_html__( 'MemberPress Gifting add-on is not active. Please activate it to use this report.', 'memberpress-gift-reporter' ) . '</p>';
 			echo '</div>';
 			echo '</div>';
 			return;
@@ -101,36 +101,37 @@ class MPGR_Admin {
 			!empty($_GET['product']) || !empty($_GET['gifter_email']) || !empty($_GET['recipient_email']) ||
 			!empty($_GET['redemption_from']) || !empty($_GET['redemption_to'])) {
 			
-			if (!wp_verify_nonce($_GET['_wpnonce'] ?? '', 'mpgr_filter_nonce')) {
-				wp_die(__('Security check failed. Please try again.', 'memberpress-gift-reporter'));
+			$nonce = isset($_GET['_wpnonce']) ? sanitize_text_field(wp_unslash($_GET['_wpnonce'])) : '';
+			if (!wp_verify_nonce($nonce, 'mpgr_filter_nonce')) {
+				wp_die(esc_html__('Security check failed. Please try again.', 'memberpress-gift-reporter'));
 			}
 		}
 
 		// Get filter parameters
 		$filters = array();
 		if (!empty($_GET['date_from'])) {
-			$filters['date_from'] = sanitize_text_field($_GET['date_from']);
+			$filters['date_from'] = sanitize_text_field(wp_unslash($_GET['date_from']));
 		}
 		if (!empty($_GET['date_to'])) {
-			$filters['date_to'] = sanitize_text_field($_GET['date_to']);
+			$filters['date_to'] = sanitize_text_field(wp_unslash($_GET['date_to']));
 		}
 		if (!empty($_GET['gift_status'])) {
-			$filters['gift_status'] = sanitize_text_field($_GET['gift_status']);
+			$filters['gift_status'] = sanitize_text_field(wp_unslash($_GET['gift_status']));
 		}
 		if (!empty($_GET['product'])) {
 			$filters['product'] = intval($_GET['product']);
 		}
 		if (!empty($_GET['gifter_email'])) {
-			$filters['gifter_email'] = sanitize_email($_GET['gifter_email']);
+			$filters['gifter_email'] = sanitize_email(wp_unslash($_GET['gifter_email']));
 		}
 		if (!empty($_GET['recipient_email'])) {
-			$filters['recipient_email'] = sanitize_email($_GET['recipient_email']);
+			$filters['recipient_email'] = sanitize_email(wp_unslash($_GET['recipient_email']));
 		}
 		if (!empty($_GET['redemption_from'])) {
-			$filters['redemption_from'] = sanitize_text_field($_GET['redemption_from']);
+			$filters['redemption_from'] = sanitize_text_field(wp_unslash($_GET['redemption_from']));
 		}
 		if (!empty($_GET['redemption_to'])) {
-			$filters['redemption_to'] = sanitize_text_field($_GET['redemption_to']);
+			$filters['redemption_to'] = sanitize_text_field(wp_unslash($_GET['redemption_to']));
 		}
 
 		// Display report.
