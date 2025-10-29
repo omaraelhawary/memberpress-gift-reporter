@@ -4,20 +4,53 @@ Tags: memberpress, gifting, reports, analytics, csv export
 Requires at least: 5.0
 Tested up to: 6.8
 Requires PHP: 7.4
-Stable tag: 1.1.0
+Stable tag: 1.2.0
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
 A WordPress plugin that generates comprehensive reports for the MemberPress Gifting add-on, showing the linkage between gift givers and recipients.
 
+## 📝 Changelog
+
+### Version 1.2.0 (2025-10-29)
+
+#### 🎉 New Features
+- **Transaction ID Filter**: Search and filter by gift purchase transaction ID
+- **Claim Transaction ID Filter**: Search and filter by gift redemption/claim transaction ID
+
+#### 🎨 Improvements
+- **Enhanced Summary Display**: Redesigned summary statistics with improved inline layout for better readability
+- **Increased Filter Count**: Now featuring 10 powerful filters (up from 8) for even more precise data analysis
+
+#### 🔧 Technical Updates
+- Updated filter validation and sanitization for new transaction ID fields
+- Enhanced JavaScript filtering logic to support transaction ID searches
+- Improved data query system to handle transaction number lookups
+
+### Version 1.1.0
+- Advanced filtering system with 8 filters
+- Date range filtering for purchases and redemptions
+- Email filtering for gifters and recipients
+- Product/membership filtering
+- Gift status filtering
+- Filtered CSV exports
+- Modern admin interface
+
+### Version 1.0.0
+- Initial release
+- Basic gift reporting functionality
+- CSV export capability
+- REST API endpoints
+
 ## 🎁 Features
 
 - **Complete Gift Tracking**: Track gift purchases, redemptions, and status
-- **Advanced Filtering System**: 8 powerful filters for precise data analysis
+- **Advanced Filtering System**: 10 powerful filters for precise data analysis
   - Date range filtering (purchase and redemption dates)
   - Gift status filtering (claimed/unclaimed)
   - Product/membership filtering
   - Email filtering (gifter and recipient)
+  - Transaction ID filtering (purchase and claim transactions)
 - **Smart Data Detection**: Intelligent messaging for no-data scenarios
 - **Comprehensive Reports**: View detailed gift transaction data
 - **Filtered CSV Export**: Export only filtered data, not all data
@@ -58,6 +91,7 @@ A WordPress plugin that generates comprehensive reports for the MemberPress Gift
    - **Status Filters**: Filter by claimed/unclaimed status
    - **Product Filters**: Filter by specific memberships
    - **Email Filters**: Search by gifter or recipient email
+   - **Transaction ID Filters**: Search by purchase or claim transaction ID
    - **Redemption Filters**: Filter by when gifts were claimed
 3. View summary statistics and detailed gift data
 4. Click **Download CSV Report** to export filtered data
@@ -108,6 +142,7 @@ The plugin tracks and reports on:
 - **Status Filtering**: Filter by gift status (claimed/unclaimed)
 - **Product Filtering**: Filter by specific memberships
 - **Email Filtering**: Search by gifter or recipient email addresses
+- **Transaction ID Filtering**: Search by purchase transaction ID or claim transaction ID
 - **Combined Filtering**: Use multiple filters simultaneously for precise data analysis
 
 ## 🔧 Configuration

@@ -99,7 +99,8 @@ class MPGR_Admin {
 		// Verify nonce for filter requests (only when filters are being applied)
 		if (!empty($_GET['date_from']) || !empty($_GET['date_to']) || !empty($_GET['gift_status']) || 
 			!empty($_GET['product']) || !empty($_GET['gifter_email']) || !empty($_GET['recipient_email']) ||
-			!empty($_GET['redemption_from']) || !empty($_GET['redemption_to'])) {
+			!empty($_GET['redemption_from']) || !empty($_GET['redemption_to']) || 
+			!empty($_GET['transaction_id']) || !empty($_GET['claim_transaction_id'])) {
 			
 			$nonce = isset($_GET['_wpnonce']) ? sanitize_text_field(wp_unslash($_GET['_wpnonce'])) : '';
 			if (!wp_verify_nonce($nonce, 'mpgr_filter_nonce')) {
@@ -132,6 +133,12 @@ class MPGR_Admin {
 		}
 		if (!empty($_GET['redemption_to'])) {
 			$filters['redemption_to'] = sanitize_text_field(wp_unslash($_GET['redemption_to']));
+		}
+		if (!empty($_GET['transaction_id'])) {
+			$filters['transaction_id'] = sanitize_text_field(wp_unslash($_GET['transaction_id']));
+		}
+		if (!empty($_GET['claim_transaction_id'])) {
+			$filters['claim_transaction_id'] = sanitize_text_field(wp_unslash($_GET['claim_transaction_id']));
 		}
 
 		// Display report.
