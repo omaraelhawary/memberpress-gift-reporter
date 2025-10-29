@@ -368,6 +368,8 @@ class MPGR_Gift_Report {
             'product' => 'intval',
             'gifter_email' => 'sanitize_email',
             'recipient_email' => 'sanitize_email',
+            'transaction_id' => 'sanitize_text_field',
+            'claim_transaction_id' => 'sanitize_text_field',
             'redemption_from' => 'sanitize_text_field',
             'redemption_to' => 'sanitize_text_field',
         );
@@ -395,6 +397,8 @@ class MPGR_Gift_Report {
             'product' => 'intval',
             'gifter_email' => 'sanitize_email',
             'recipient_email' => 'sanitize_email',
+            'transaction_id' => 'sanitize_text_field',
+            'claim_transaction_id' => 'sanitize_text_field',
             'redemption_from' => 'sanitize_text_field',
             'redemption_to' => 'sanitize_text_field',
         );
@@ -495,6 +499,17 @@ class MPGR_Gift_Report {
             $where_conditions[] = $wpdb->prepare("recipient.user_email LIKE %s", '%' . $wpdb->esc_like($recipient_email) . '%');
         }
         
+        // Transaction ID filter
+        if (!empty($filters['transaction_id'])) {
+            $transaction_id = sanitize_text_field($filters['transaction_id']);
+            $where_conditions[] = $wpdb->prepare("gifter_txn.trans_num LIKE %s", '%' . $wpdb->esc_like($transaction_id) . '%');
+        }
+        
+        // Claim Transaction ID filter
+        if (!empty($filters['claim_transaction_id'])) {
+            $claim_transaction_id = sanitize_text_field($filters['claim_transaction_id']);
+            $where_conditions[] = $wpdb->prepare("redemption_txn.trans_num LIKE %s", '%' . $wpdb->esc_like($claim_transaction_id) . '%');
+        }
 
         
         // Redemption From filter
@@ -917,7 +932,12 @@ class MPGR_Gift_Report {
         if (!empty($filters['recipient_email'])) {
 			$active_filters[] = esc_html__( 'Recipient Email:', 'memberpress-gift-reporter' ) . ' ' . esc_html($filters['recipient_email']);
         }
-
+        if (!empty($filters['transaction_id'])) {
+			$active_filters[] = esc_html__( 'Transaction ID:', 'memberpress-gift-reporter' ) . ' ' . esc_html($filters['transaction_id']);
+        }
+        if (!empty($filters['claim_transaction_id'])) {
+			$active_filters[] = esc_html__( 'Claim Transaction ID:', 'memberpress-gift-reporter' ) . ' ' . esc_html($filters['claim_transaction_id']);
+        }
         if (!empty($filters['redemption_from'])) {
 			$active_filters[] = esc_html__( 'Redemption From:', 'memberpress-gift-reporter' ) . ' ' . esc_html($filters['redemption_from']);
         }
@@ -981,12 +1001,23 @@ class MPGR_Gift_Report {
 		echo '<input type="email" id="gifter_email" name="gifter_email" value="' . esc_attr($filters['gifter_email'] ?? '') . '" placeholder="' . esc_attr__( 'Enter gifter email', 'memberpress-gift-reporter' ) . '">';
 		echo '</div>';
 		
-		// Recipient Email filter
+        		// Recipient Email filter
 		echo '<div class="mpgr-filter-group">';
 		echo '<label for="recipient_email">' . esc_html__( 'Recipient Email', 'memberpress-gift-reporter' ) . '</label>';
 		echo '<input type="email" id="recipient_email" name="recipient_email" value="' . esc_attr($filters['recipient_email'] ?? '') . '" placeholder="' . esc_attr__( 'Enter recipient email', 'memberpress-gift-reporter' ) . '">';
 		echo '</div>';
         
+		// Transaction ID filter
+		echo '<div class="mpgr-filter-group">';
+		echo '<label for="transaction_id">' . esc_html__( 'Transaction ID', 'memberpress-gift-reporter' ) . '</label>';
+		echo '<input type="text" id="transaction_id" name="transaction_id" value="' . esc_attr($filters['transaction_id'] ?? '') . '" placeholder="' . esc_attr__( 'Enter transaction ID', 'memberpress-gift-reporter' ) . '">';
+		echo '</div>';
+		
+		// Claim Transaction ID filter
+		echo '<div class="mpgr-filter-group">';
+		echo '<label for="claim_transaction_id">' . esc_html__( 'Claim Transaction ID', 'memberpress-gift-reporter' ) . '</label>';
+		echo '<input type="text" id="claim_transaction_id" name="claim_transaction_id" value="' . esc_attr($filters['claim_transaction_id'] ?? '') . '" placeholder="' . esc_attr__( 'Enter claim transaction ID', 'memberpress-gift-reporter' ) . '">';
+		echo '</div>';
 
         
         		// Redemption From filter
@@ -1019,6 +1050,8 @@ class MPGR_Gift_Report {
                       !empty($filters['product']) || 
                       !empty($filters['gifter_email']) || 
                       !empty($filters['recipient_email']) || 
+                      !empty($filters['transaction_id']) || 
+                      !empty($filters['claim_transaction_id']) || 
                       !empty($filters['redemption_from']) || 
                       !empty($filters['redemption_to']);
         
@@ -1027,11 +1060,12 @@ class MPGR_Gift_Report {
 		} else {
 			echo '<h3>📊 ' . esc_html__( 'All-time Summary', 'memberpress-gift-reporter' ) . '</h3>';
 		}
-		echo '<p><strong>' . esc_html__( 'Total Gifts:', 'memberpress-gift-reporter' ) . '</strong> ' . esc_html($summary['total_gifts']) . '</p>';
-		echo '<p><strong>' . esc_html__( 'Claimed:', 'memberpress-gift-reporter' ) . '</strong> ' . esc_html($summary['claimed_gifts']) . '</p>';
-		echo '<p><strong>' . esc_html__( 'Unclaimed:', 'memberpress-gift-reporter' ) . '</strong> ' . esc_html($summary['unclaimed_gifts']) . '</p>';
-		echo '<p><strong>' . esc_html__( 'Claim Rate:', 'memberpress-gift-reporter' ) . '</strong> ' . esc_html($summary['claim_rate']) . '%</p>';
-		echo '<p><strong>' . esc_html__( 'Total Revenue:', 'memberpress-gift-reporter' ) . '</strong> ' . esc_html($summary['total_revenue_formatted']) . '</p>';
+		echo '<div class="mpgr-summary-row">';
+		echo '<span class="mpgr-summary-item"><strong>' . esc_html__( 'Total Gifts:', 'memberpress-gift-reporter' ) . '</strong> ' . esc_html($summary['total_gifts']) . '</span>';
+		echo '<span class="mpgr-summary-item"><strong>' . esc_html__( 'Claimed:', 'memberpress-gift-reporter' ) . '</strong> ' . esc_html($summary['claimed_gifts']) . '</span>';
+		echo '<span class="mpgr-summary-item"><strong>' . esc_html__( 'Unclaimed:', 'memberpress-gift-reporter' ) . '</strong> ' . esc_html($summary['unclaimed_gifts']) . '</span>';
+		echo '<span class="mpgr-summary-item"><strong>' . esc_html__( 'Claim Rate:', 'memberpress-gift-reporter' ) . '</strong> ' . esc_html($summary['claim_rate']) . '%</span>';
+		echo '</div>';
         echo '</div>';
         
         		// Export button
@@ -1042,12 +1076,14 @@ class MPGR_Gift_Report {
 			echo '<thead>';
 			echo '<tr>';
 			echo '<th>' . esc_html__( 'Gift ID', 'memberpress-gift-reporter' ) . '</th>';
+			echo '<th>' . esc_html__( 'Transaction ID', 'memberpress-gift-reporter' ) . '</th>';
 			echo '<th>' . esc_html__( 'Purchase Date', 'memberpress-gift-reporter' ) . '</th>';
 			echo '<th>' . esc_html__( 'Gifter Email', 'memberpress-gift-reporter' ) . '</th>';
 			echo '<th>' . esc_html__( 'Product', 'memberpress-gift-reporter' ) . '</th>';
 			echo '<th>' . esc_html__( 'Coupon Code', 'memberpress-gift-reporter' ) . '</th>';
 			echo '<th>' . esc_html__( 'Status', 'memberpress-gift-reporter' ) . '</th>';
 			echo '<th>' . esc_html__( 'Recipient Email', 'memberpress-gift-reporter' ) . '</th>';
+			echo '<th>' . esc_html__( 'Claim Transaction ID', 'memberpress-gift-reporter' ) . '</th>';
 			echo '<th>' . esc_html__( 'Redemption Date', 'memberpress-gift-reporter' ) . '</th>';
 			echo '<th>' . esc_html__( 'Amount', 'memberpress-gift-reporter' ) . '</th>';
 			echo '</tr>';
@@ -1069,6 +1105,7 @@ class MPGR_Gift_Report {
                 
                 echo '<tr>';
                 echo '<td>' . esc_html($row['gift_transaction_id']) . '</td>';
+                echo '<td>' . esc_html($row['gift_transaction_number']) . '</td>';
                 echo '<td>' . esc_html($row['gift_purchase_date']) . '</td>';
                 if ($row['gifter_email'] === 'Deleted User') {
                     echo '<td><span class="mpgr-deleted-user">' . esc_html__( 'Deleted User', 'memberpress-gift-reporter' ) . '</span></td>';
@@ -1104,8 +1141,10 @@ class MPGR_Gift_Report {
                     } else {
                         echo '<td>' . esc_html($row['recipient_email']) . '</td>';
                     }
+                    echo '<td>' . esc_html($row['redemption_transaction_number'] ?: esc_html__( 'N/A', 'memberpress-gift-reporter' )) . '</td>';
                     echo '<td>' . esc_html($row['redemption_date'] ?: esc_html__( 'N/A', 'memberpress-gift-reporter' )) . '</td>';
                 } else {
+                    echo '<td>' . esc_html__( 'N/A', 'memberpress-gift-reporter' ) . '</td>';
                     echo '<td>' . esc_html__( 'N/A', 'memberpress-gift-reporter' ) . '</td>';
                     echo '<td>' . esc_html__( 'N/A', 'memberpress-gift-reporter' ) . '</td>';
                 }

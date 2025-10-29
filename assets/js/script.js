@@ -57,6 +57,15 @@
             formData.append('recipient_email', recipientEmail);
         }
         
+        var transactionId = $('#transaction_id').val();
+        if (transactionId) {
+            formData.append('transaction_id', transactionId);
+        }
+        
+        var claimTransactionId = $('#claim_transaction_id').val();
+        if (claimTransactionId) {
+            formData.append('claim_transaction_id', claimTransactionId);
+        }
 
         
         var redemptionFrom = $('#redemption_from').val();
@@ -185,7 +194,8 @@
         $('#product').val('');
         $('#gifter_email').val('');
         $('#recipient_email').val('');
-
+        $('#transaction_id').val('');
+        $('#claim_transaction_id').val('');
         $('#redemption_from').val('');
         $('#redemption_to').val('');
         

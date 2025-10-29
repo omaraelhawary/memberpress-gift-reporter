@@ -7,7 +7,6 @@
 .mpgr-gift-report {
     font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen-Sans, Ubuntu, Cantarell, "Helvetica Neue", sans-serif;
     margin: 20px 0;
-    max-width: 1200px;
     background: white;
     padding: 25px;
     border-radius: 12px;
@@ -187,6 +186,21 @@
     margin: 8px 0;
     font-size: 16px;
     line-height: 1.5;
+}
+
+.mpgr-summary-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 20px;
+    align-items: center;
+}
+
+.mpgr-summary-item {
+    font-size: 16px;
+    padding: 8px 16px;
+    background: white;
+    border-radius: 6px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
 }
 
 .mpgr-export-btn {
@@ -491,6 +505,17 @@
     
     .mpgr-summary p {
         font-size: 14px;
+    }
+    
+    .mpgr-summary-row {
+        flex-direction: column;
+        gap: 10px;
+        align-items: stretch;
+    }
+    
+    .mpgr-summary-item {
+        font-size: 14px;
+        padding: 6px 12px;
     }
 }
 
