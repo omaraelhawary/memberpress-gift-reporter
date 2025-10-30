@@ -4,13 +4,30 @@ Tags: memberpress, gifting, reports, analytics, csv export
 Requires at least: 5.0
 Tested up to: 6.8
 Requires PHP: 7.4
-Stable tag: 1.2.0
+Stable tag: 1.3.0
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
 A WordPress plugin that generates comprehensive reports for the MemberPress Gifting add-on, showing the linkage between gift givers and recipients.
 
 ## 📝 Changelog
+
+### Version 1.3.0 (2025-10-30)
+
+#### 🎉 New Features
+- **Resend Gift Email**: New action button to resend the gift email to the gifter with redemption link
+- **Copy Redemption Link**: New action button to copy the redemption link directly to clipboard
+- **Actions Column**: Added dedicated actions column in the report table with visual feedback
+
+#### 🎨 Improvements
+- **Enhanced User Experience**: Action buttons with tooltips, loading states, and success animations
+- **Quick Customer Support**: Easily resend gift information when customers lose their original email
+- **Manual Follow-ups**: Copy redemption links for manual outreach via email, chat, or phone
+
+#### 🔧 Technical Updates
+- Added action buttons UI with responsive design and accessibility features
+- Implemented clipboard API with fallback support for older browsers
+- Enhanced CSS with button animations and visual states (loading, success, hover)
 
 ### Version 1.2.0 (2025-10-29)
 
@@ -45,6 +62,9 @@ A WordPress plugin that generates comprehensive reports for the MemberPress Gift
 ## 🎁 Features
 
 - **Complete Gift Tracking**: Track gift purchases, redemptions, and status
+- **Quick Actions**: Built-in action buttons for each gift transaction
+  - 📧 Resend gift email to the gifter
+  - 🔗 Copy redemption link to clipboard
 - **Advanced Filtering System**: 10 powerful filters for precise data analysis
   - Date range filtering (purchase and redemption dates)
   - Gift status filtering (claimed/unclaimed)
@@ -94,8 +114,11 @@ A WordPress plugin that generates comprehensive reports for the MemberPress Gift
    - **Transaction ID Filters**: Search by purchase or claim transaction ID
    - **Redemption Filters**: Filter by when gifts were claimed
 3. View summary statistics and detailed gift data
-4. Click **Download CSV Report** to export filtered data
-5. Use **Clear Filters** to reset all filters quickly
+4. Use action buttons in the **Actions** column:
+   - 📧 **Resend Email**: Click to resend the gift email to the gifter
+   - 🔗 **Copy Link**: Click to copy the redemption link to your clipboard
+5. Click **Download CSV Report** to export filtered data
+6. Use **Clear Filters** to reset all filters quickly
 
 ### REST API
 

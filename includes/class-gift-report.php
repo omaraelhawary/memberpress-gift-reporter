@@ -1086,6 +1086,7 @@ class MPGR_Gift_Report {
 			echo '<th>' . esc_html__( 'Claim Transaction ID', 'memberpress-gift-reporter' ) . '</th>';
 			echo '<th>' . esc_html__( 'Redemption Date', 'memberpress-gift-reporter' ) . '</th>';
 			echo '<th>' . esc_html__( 'Amount', 'memberpress-gift-reporter' ) . '</th>';
+			echo '<th>' . esc_html__( 'Actions', 'memberpress-gift-reporter' ) . '</th>';
 			echo '</tr>';
 			echo '</thead>';
             echo '<tbody>';
@@ -1149,6 +1150,15 @@ class MPGR_Gift_Report {
                     echo '<td>' . esc_html__( 'N/A', 'memberpress-gift-reporter' ) . '</td>';
                 }
                 echo '<td>' . esc_html($this->format_currency($row['gift_total'])) . '</td>';
+                
+                // Actions column
+                echo '<td class="mpgr-actions">';
+                // Show resend email button
+                echo '<button class="mpgr-action-btn mpgr-resend-email" data-gift-id="' . esc_attr($row['gift_transaction_id']) . '" title="' . esc_attr__( 'Resend gift email to gifter', 'memberpress-gift-reporter' ) . '">📧</button>';
+                // Show copy link button
+                echo '<button class="mpgr-action-btn mpgr-copy-link" data-gift-id="' . esc_attr($row['gift_transaction_id']) . '" title="' . esc_attr__( 'Copy redemption link', 'memberpress-gift-reporter' ) . '">🔗</button>';
+                echo '</td>';
+                
                 echo '</tr>';
             }
             
