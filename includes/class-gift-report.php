@@ -271,6 +271,7 @@ class MPGR_Gift_Report {
 		$success_count = 0;
 		$failed_count = 0;
 		$failed_gifts = array();
+		$sent_details = array(); // Track which emails were sent to which gifts
 
 		global $wpdb;
 
@@ -327,7 +328,7 @@ class MPGR_Gift_Report {
 				continue;
 			}
 
-			// Get gifter email
+			// Get gifter email - ensure we get it fresh for each transaction
 			$gifter_user = get_userdata($gift_transaction->user_id);
 			if (!$gifter_user) {
 				$failed_count++;
@@ -335,9 +336,9 @@ class MPGR_Gift_Report {
 				continue;
 			}
 
-			$gifter_email = $gifter_user->user_email;
+			$gifter_email = sanitize_email($gifter_user->user_email);
 			
-			if (!$gifter_email) {
+			if (empty($gifter_email)) {
 				$failed_count++;
 				$failed_gifts[] = $gift_transaction_id;
 				continue;
@@ -410,10 +411,32 @@ class MPGR_Gift_Report {
 				'From: ' . get_bloginfo('name') . ' <' . get_option('admin_email') . '>'
 			);
 			
-			$sent = wp_mail($gifter_email, $subject, $message, $headers);
+			// Ensure we're sending to the correct email for this specific gift
+			// Store email in a variable to ensure it's not modified by reference
+			$recipient_email = trim($gifter_email);
+			
+			// Verify email is valid before sending
+			if (!is_email($recipient_email)) {
+				$failed_count++;
+				$failed_gifts[] = $gift_transaction_id;
+				continue;
+			}
+			
+			// Send email - wp_mail first parameter is the recipient
+			// Use explicit variable to avoid any closure or reference issues
+			$sent = wp_mail($recipient_email, $subject, $message, $headers);
+			
+			// Clear any WordPress query caches that might interfere
+			wp_cache_flush_group('useremail');
 
 			if ($sent) {
 				$success_count++;
+				// Track successful sends for debugging - use the actual recipient email
+				$sent_details[] = array(
+					'gift_id' => $gift_transaction_id,
+					'email' => $recipient_email,
+					'user_id' => $gift_transaction->user_id
+				);
 			} else {
 				$failed_count++;
 				$failed_gifts[] = $gift_transaction_id;
@@ -438,7 +461,8 @@ class MPGR_Gift_Report {
 			'message' => $message,
 			'success_count' => $success_count,
 			'failed_count' => $failed_count,
-			'failed_gifts' => $failed_gifts
+			'failed_gifts' => $failed_gifts,
+			'sent_details' => $sent_details // Include details for debugging
 		));
 	}
     

@@ -428,7 +428,33 @@
             },
             success: function(response) {
                 if (response.success) {
-                    showMessage(response.data.message, 'success');
+                    var message = response.data.message;
+                    
+                    // Show detailed debugging info if available (for troubleshooting)
+                    if (response.data.sent_details && response.data.sent_details.length > 0) {
+                        var uniqueEmails = [];
+                        var emailCounts = {};
+                        
+                        response.data.sent_details.forEach(function(detail) {
+                            if (uniqueEmails.indexOf(detail.email) === -1) {
+                                uniqueEmails.push(detail.email);
+                            }
+                            emailCounts[detail.email] = (emailCounts[detail.email] || 0) + 1;
+                        });
+                        
+                        // If emails went to different addresses, show that
+                        if (uniqueEmails.length > 1) {
+                            var emailList = uniqueEmails.join(', ');
+                            message += ' (Sent to: ' + emailList + ')';
+                        }
+                    }
+                    
+                    showMessage(message, 'success');
+                    
+                    // Log to console for debugging
+                    if (response.data.sent_details) {
+                        console.log('Bulk email details:', response.data.sent_details);
+                    }
                     
                     // Deselect all after successful send
                     deselectAll();
