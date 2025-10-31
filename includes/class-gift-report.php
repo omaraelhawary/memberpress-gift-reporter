@@ -28,6 +28,7 @@ class MPGR_Gift_Report {
 		add_action( 'wp_ajax_mpgr_export_csv', array( $this, 'ajax_export_csv' ) );
 		add_action( 'wp_ajax_mpgr_resend_gift_email', array( $this, 'ajax_resend_gift_email' ) );
 		add_action( 'wp_ajax_mpgr_copy_redemption_link', array( $this, 'ajax_copy_redemption_link' ) );
+		add_action( 'wp_ajax_mpgr_bulk_resend_gift_emails', array( $this, 'ajax_bulk_resend_gift_emails' ) );
 
 		// Add REST API endpoint.
 		add_action( 'rest_api_init', array( $this, 'register_rest_routes' ) );
@@ -236,6 +237,208 @@ class MPGR_Gift_Report {
 		wp_send_json_success(array(
 			'redemption_link' => $redemption_link,
 			'message' => __('Redemption link copied to clipboard', 'memberpress-gift-reporter')
+		));
+	}
+    
+    /**
+     * AJAX bulk resend gift emails handler
+     */
+	public function ajax_bulk_resend_gift_emails() {
+		// Verify nonce and permissions.
+		$nonce = isset($_POST['nonce']) ? sanitize_text_field(wp_unslash($_POST['nonce'])) : '';
+		if ( ! wp_verify_nonce( $nonce, 'mpgr_bulk_resend_gift_emails' ) || ! current_user_can( 'manage_options' ) ) {
+			wp_send_json_error( array( 'message' => esc_html__( 'Access denied', 'memberpress-gift-reporter' ) ) );
+		}
+
+		// Get gift transaction IDs
+		$gift_transaction_ids = isset($_POST['gift_transaction_ids']) ? array_map('intval', $_POST['gift_transaction_ids']) : array();
+		
+		if (empty($gift_transaction_ids)) {
+			wp_send_json_error( array( 'message' => esc_html__( 'No gifts selected', 'memberpress-gift-reporter' ) ) );
+		}
+
+		// Limit to prevent timeouts
+		$max_bulk_limit = 100;
+		if (count($gift_transaction_ids) > $max_bulk_limit) {
+			wp_send_json_error( array( 
+				'message' => sprintf( 
+					esc_html__( 'Too many gifts selected. Maximum %d gifts allowed per batch.', 'memberpress-gift-reporter' ), 
+					$max_bulk_limit 
+				) 
+			) );
+		}
+
+		$success_count = 0;
+		$failed_count = 0;
+		$failed_gifts = array();
+
+		global $wpdb;
+
+		foreach ($gift_transaction_ids as $gift_transaction_id) {
+			// Get gift transaction details
+			// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching -- Necessary for gift transaction lookup
+			$gift_transaction = $wpdb->get_row($wpdb->prepare(
+				"SELECT * FROM {$wpdb->prefix}mepr_transactions WHERE id = %d",
+				$gift_transaction_id
+			));
+
+			if (!$gift_transaction) {
+				$failed_count++;
+				$failed_gifts[] = $gift_transaction_id;
+				continue;
+			}
+
+			// Only send to unclaimed gifts
+			// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching -- Necessary for gift status lookup
+			$gift_status = $wpdb->get_var($wpdb->prepare(
+				"SELECT meta_value FROM {$wpdb->prefix}mepr_transaction_meta 
+				WHERE transaction_id = %d AND meta_key = '_gift_status'",
+				$gift_transaction_id
+			));
+
+			// If status is not explicitly 'unclaimed', check if it should be (default)
+			if ($gift_status !== 'unclaimed' && !empty($gift_status)) {
+				// Skip claimed gifts
+				$failed_count++;
+				$failed_gifts[] = $gift_transaction_id;
+				continue;
+			}
+
+			// Get gift coupon ID
+			// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching -- Necessary for gift coupon lookup
+			$gift_coupon_id = $wpdb->get_var($wpdb->prepare(
+				"SELECT meta_value FROM {$wpdb->prefix}mepr_transaction_meta 
+				WHERE transaction_id = %d AND meta_key = '_gift_coupon_id'",
+				$gift_transaction_id
+			));
+
+			if (!$gift_coupon_id) {
+				$failed_count++;
+				$failed_gifts[] = $gift_transaction_id;
+				continue;
+			}
+
+			// Get coupon code
+			$coupon_code = get_post_field('post_title', $gift_coupon_id);
+			
+			if (!$coupon_code) {
+				$failed_count++;
+				$failed_gifts[] = $gift_transaction_id;
+				continue;
+			}
+
+			// Get gifter email
+			$gifter_user = get_userdata($gift_transaction->user_id);
+			if (!$gifter_user) {
+				$failed_count++;
+				$failed_gifts[] = $gift_transaction_id;
+				continue;
+			}
+
+			$gifter_email = $gifter_user->user_email;
+			
+			if (!$gifter_email) {
+				$failed_count++;
+				$failed_gifts[] = $gift_transaction_id;
+				continue;
+			}
+
+			// Get product name
+			$product_name = get_post_field('post_title', $gift_transaction->product_id);
+
+			// Generate redemption link
+			$redemption_link = home_url('/memberpress-checkout/?coupon=' . urlencode($coupon_code));
+
+			// Send gift email
+			// translators: %s is the product name
+			$subject = sprintf(__('Your Gift Purchase - %s', 'memberpress-gift-reporter'), $product_name);
+			
+			// Create HTML email message with proper formatting (same as individual resend)
+			$message = sprintf(
+				'<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>%1$s</title>
+    <style>
+        body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px; }
+        .header { background-color: #f8f9fa; padding: 20px; border-radius: 8px; margin-bottom: 20px; }
+        .content { background-color: #ffffff; padding: 20px; border-radius: 8px; border: 1px solid #e9ecef; }
+        .coupon-code { background-color: #e3f2fd; padding: 15px; border-radius: 6px; border-left: 4px solid #2196f3; margin: 20px 0; font-family: monospace; font-size: 16px; font-weight: bold; }
+        .redemption-link { background-color: #f3e5f5; padding: 15px; border-radius: 6px; border-left: 4px solid #9c27b0; margin: 20px 0; }
+        .redemption-link a { color: #9c27b0; text-decoration: none; font-weight: bold; }
+        .redemption-link a:hover { text-decoration: underline; }
+        .footer { margin-top: 30px; padding-top: 20px; border-top: 1px solid #e9ecef; color: #6c757d; font-size: 14px; }
+        .greeting { font-size: 18px; font-weight: bold; margin-bottom: 20px; }
+        .product-name { font-weight: bold; color: #2c3e50; }
+        .thank-you { font-style: italic; color: #27ae60; }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1 style="margin: 0; color: #2c3e50;">🎁 Gift Membership Purchase</h1>
+    </div>
+    
+    <div class="content">
+        <div class="greeting">Hello!</div>
+        
+        <p>You have purchased a gift membership for <span class="product-name">%1$s</span>.</p>
+        
+        <div class="redemption-link">
+            <strong>The recipient can redeem this gift by visiting:</strong><br>
+            <a href="%2$s">%2$s</a>
+        </div>
+        
+        <p class="thank-you">Thank you for your purchase!</p>
+        
+        <div class="footer">
+            <p>Best regards,<br>
+            <strong>%3$s</strong></p>
+        </div>
+    </div>
+</body>
+</html>',
+				$product_name,
+				$redemption_link,
+				get_bloginfo('name')
+			);
+
+			// Set headers for HTML email
+			$headers = array(
+				'Content-Type: text/html; charset=UTF-8',
+				'From: ' . get_bloginfo('name') . ' <' . get_option('admin_email') . '>'
+			);
+			
+			$sent = wp_mail($gifter_email, $subject, $message, $headers);
+
+			if ($sent) {
+				$success_count++;
+			} else {
+				$failed_count++;
+				$failed_gifts[] = $gift_transaction_id;
+			}
+
+			// Add small delay to prevent overwhelming mail server
+			usleep(500000); // 0.5 second delay between emails
+		}
+
+		// Prepare response message
+		if ($success_count > 0 && $failed_count === 0) {
+			// translators: %d is the number of emails sent
+			$message = sprintf( esc_html__( 'Successfully sent %d reminder email(s).', 'memberpress-gift-reporter' ), $success_count );
+		} elseif ($success_count > 0 && $failed_count > 0) {
+			// translators: %1$d is success count, %2$d is failed count
+			$message = sprintf( esc_html__( 'Sent %1$d email(s) successfully. %2$d email(s) failed.', 'memberpress-gift-reporter' ), $success_count, $failed_count );
+		} else {
+			$message = esc_html__( 'Failed to send reminder emails. Please check your email configuration.', 'memberpress-gift-reporter' );
+		}
+
+		wp_send_json_success(array(
+			'message' => $message,
+			'success_count' => $success_count,
+			'failed_count' => $failed_count,
+			'failed_gifts' => $failed_gifts
 		));
 	}
     
@@ -1072,9 +1275,32 @@ class MPGR_Gift_Report {
 		echo '<a href="#" class="mpgr-export-btn" onclick="mpgrExportCSV()">&#128229; ' . esc_html__( 'Download CSV Report', 'memberpress-gift-reporter' ) . '</a>';
         
         if (!empty($this->report_data)) {
+            // Count unclaimed gifts for bulk action
+            $unclaimed_count = 0;
+            foreach ($this->report_data as $row) {
+                // Check if gift is unclaimed (status is 'unclaimed' or empty/defaults to unclaimed)
+                $is_unclaimed = ($row['gift_status'] === 'unclaimed' || empty($row['gift_status']));
+                if ($is_unclaimed) {
+                    $unclaimed_count++;
+                }
+            }
+            
+            // Bulk action button (only show if there are unclaimed gifts)
+            if ($unclaimed_count > 0) {
+                echo '<div class="mpgr-bulk-actions">';
+                echo '<button type="button" id="mpgr-select-all-unclaimed" class="button">' . esc_html__( 'Select All Unclaimed', 'memberpress-gift-reporter' ) . '</button>';
+                echo '<button type="button" id="mpgr-deselect-all" class="button" style="display:none;">' . esc_html__( 'Deselect All', 'memberpress-gift-reporter' ) . '</button>';
+                echo '<button type="button" id="mpgr-bulk-send-emails" class="button button-primary" style="display:none;">' . esc_html__( '📧 Send Reminder Emails to Selected', 'memberpress-gift-reporter' ) . '</button>';
+                echo '<span id="mpgr-selected-count" class="mpgr-selected-count" style="display:none;"></span>';
+                echo '</div>';
+            }
+            
             			echo '<table class="mpgr-table">';
 			echo '<thead>';
 			echo '<tr>';
+			if ($unclaimed_count > 0) {
+				echo '<th class="mpgr-checkbox-col"><input type="checkbox" id="mpgr-select-all-header" title="' . esc_attr__( 'Select all unclaimed gifts', 'memberpress-gift-reporter' ) . '"></th>';
+			}
 			echo '<th>' . esc_html__( 'Gift ID', 'memberpress-gift-reporter' ) . '</th>';
 			echo '<th>' . esc_html__( 'Transaction ID', 'memberpress-gift-reporter' ) . '</th>';
 			echo '<th>' . esc_html__( 'Purchase Date', 'memberpress-gift-reporter' ) . '</th>';
@@ -1104,7 +1330,20 @@ class MPGR_Gift_Report {
                         $status_class = 'mpgr-refunded';
                 }
                 
-                echo '<tr>';
+                // Check if gift is unclaimed (status is 'unclaimed' or empty/defaults to unclaimed)
+                $is_unclaimed = ($row['gift_status'] === 'unclaimed' || empty($row['gift_status']));
+                
+                echo '<tr' . ($is_unclaimed ? ' class="mpgr-unclaimed-row"' : '') . '>';
+                
+                // Checkbox column (only for unclaimed gifts)
+                if ($unclaimed_count > 0) {
+                    if ($is_unclaimed) {
+                        echo '<td class="mpgr-checkbox-col"><input type="checkbox" class="mpgr-gift-checkbox" value="' . esc_attr($row['gift_transaction_id']) . '" data-gift-id="' . esc_attr($row['gift_transaction_id']) . '"></td>';
+                    } else {
+                        echo '<td class="mpgr-checkbox-col"></td>';
+                    }
+                }
+                
                 echo '<td>' . esc_html($row['gift_transaction_id']) . '</td>';
                 echo '<td>' . esc_html($row['gift_transaction_number']) . '</td>';
                 echo '<td>' . esc_html($row['gift_purchase_date']) . '</td>';
@@ -1214,7 +1453,8 @@ class MPGR_Gift_Report {
                 'ajax_url' => admin_url('admin-ajax.php'),
                 'nonce' => wp_create_nonce('mpgr_export_csv'),
                 'resend_email_nonce' => wp_create_nonce('mpgr_resend_gift_email'),
-                'copy_link_nonce' => wp_create_nonce('mpgr_copy_redemption_link')
+                'copy_link_nonce' => wp_create_nonce('mpgr_copy_redemption_link'),
+                'bulk_resend_nonce' => wp_create_nonce('mpgr_bulk_resend_gift_emails')
             ));
         }
     }

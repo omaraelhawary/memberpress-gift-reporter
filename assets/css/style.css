@@ -224,6 +224,74 @@
     text-decoration: none;
 }
 
+/* Bulk actions */
+.mpgr-bulk-actions {
+    background: #f8f9fa;
+    padding: 15px 20px;
+    margin: 20px 0;
+    border-radius: 8px;
+    border: 1px solid #dee2e6;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+.mpgr-bulk-actions .button {
+    padding: 8px 16px;
+    border-radius: 6px;
+    font-weight: 500;
+    transition: all 0.2s ease;
+    cursor: pointer;
+}
+
+.mpgr-bulk-actions .button-primary {
+    background: #17a2b8;
+    border-color: #17a2b8;
+    color: white;
+}
+
+.mpgr-bulk-actions .button-primary:hover {
+    background: #138496;
+    border-color: #138496;
+    transform: translateY(-1px);
+}
+
+.mpgr-bulk-actions .button-primary:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+    transform: none;
+}
+
+.mpgr-selected-count {
+    color: #495057;
+    font-size: 14px;
+    font-weight: 500;
+    margin-left: auto;
+}
+
+/* Checkbox column */
+.mpgr-checkbox-col {
+    width: 40px;
+    text-align: center;
+    vertical-align: middle;
+}
+
+.mpgr-checkbox-col input[type="checkbox"] {
+    width: 18px;
+    height: 18px;
+    cursor: pointer;
+    margin: 0;
+}
+
+.mpgr-unclaimed-row {
+    background-color: #fffbf0;
+}
+
+.mpgr-unclaimed-row:hover {
+    background-color: #fff8e1;
+}
+
 .mpgr-table {
     border-collapse: collapse;
     width: 100%;

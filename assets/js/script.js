@@ -341,6 +341,120 @@
     }
 
     /**
+     * Get selected gift IDs
+     */
+    function getSelectedGiftIds() {
+        var selectedIds = [];
+        $('.mpgr-gift-checkbox:checked').each(function() {
+            selectedIds.push($(this).val());
+        });
+        return selectedIds;
+    }
+
+    /**
+     * Update bulk action buttons visibility
+     */
+    function updateBulkActions() {
+        var selectedCount = getSelectedGiftIds().length;
+        var $selectAllBtn = $('#mpgr-select-all-unclaimed');
+        var $deselectAllBtn = $('#mpgr-deselect-all');
+        var $bulkSendBtn = $('#mpgr-bulk-send-emails');
+        var $selectedCount = $('#mpgr-selected-count');
+        var $selectAllHeader = $('#mpgr-select-all-header');
+        
+        if (selectedCount > 0) {
+            $selectAllBtn.hide();
+            $deselectAllBtn.show();
+            $bulkSendBtn.show();
+            $selectedCount.text('(' + selectedCount + ' ' + (selectedCount === 1 ? 'gift' : 'gifts') + ' selected)').show();
+        } else {
+            $selectAllBtn.show();
+            $deselectAllBtn.hide();
+            $bulkSendBtn.hide();
+            $selectedCount.hide();
+        }
+        
+        // Update header checkbox state
+        var totalUnclaimed = $('.mpgr-gift-checkbox').length;
+        var selected = $('.mpgr-gift-checkbox:checked').length;
+        if ($selectAllHeader.length) {
+            $selectAllHeader.prop('checked', totalUnclaimed > 0 && selected === totalUnclaimed);
+            $selectAllHeader.prop('indeterminate', selected > 0 && selected < totalUnclaimed);
+        }
+    }
+
+    /**
+     * Select all unclaimed gifts
+     */
+    function selectAllUnclaimed() {
+        $('.mpgr-gift-checkbox').prop('checked', true);
+        updateBulkActions();
+    }
+
+    /**
+     * Deselect all gifts
+     */
+    function deselectAll() {
+        $('.mpgr-gift-checkbox').prop('checked', false);
+        updateBulkActions();
+    }
+
+    /**
+     * Bulk resend gift emails
+     */
+    function bulkResendGiftEmails() {
+        var selectedIds = getSelectedGiftIds();
+        
+        if (selectedIds.length === 0) {
+            showMessage('Please select at least one unclaimed gift.', 'error');
+            return;
+        }
+
+        if (!confirm('Send reminder emails to ' + selectedIds.length + ' selected gifter(s)?')) {
+            return;
+        }
+
+        var $btn = $('#mpgr-bulk-send-emails');
+        var originalText = $btn.text();
+        $btn.text('⏳ Sending...').prop('disabled', true);
+
+        $.ajax({
+            url: mpgr_ajax.ajax_url,
+            type: 'POST',
+            data: {
+                action: 'mpgr_bulk_resend_gift_emails',
+                nonce: mpgr_ajax.bulk_resend_nonce,
+                gift_transaction_ids: selectedIds
+            },
+            success: function(response) {
+                if (response.success) {
+                    showMessage(response.data.message, 'success');
+                    
+                    // Deselect all after successful send
+                    deselectAll();
+                    
+                    // If all succeeded, you might want to reload or update the page
+                    if (response.data.success_count > 0 && response.data.failed_count === 0) {
+                        // Optional: reload after a short delay to refresh the status
+                        setTimeout(function() {
+                            // Uncomment the line below if you want to auto-reload
+                            // window.location.reload();
+                        }, 2000);
+                    }
+                } else {
+                    showMessage(response.data.message || 'Error sending bulk reminder emails', 'error');
+                }
+                
+                $btn.text(originalText).prop('disabled', false);
+            },
+            error: function() {
+                showMessage('Error sending bulk reminder emails. Please try again.', 'error');
+                $btn.text(originalText).prop('disabled', false);
+            }
+        });
+    }
+
+    /**
      * Document ready
      */
     $(document).ready(function() {
@@ -385,6 +499,39 @@
             var giftId = $(this).data('gift-id');
             mpgrCopyRedemptionLink(giftId);
         });
+
+        // Handle bulk action buttons
+        $(document).on('click', '#mpgr-select-all-unclaimed', function(e) {
+            e.preventDefault();
+            selectAllUnclaimed();
+        });
+
+        $(document).on('click', '#mpgr-deselect-all', function(e) {
+            e.preventDefault();
+            deselectAll();
+        });
+
+        $(document).on('click', '#mpgr-bulk-send-emails', function(e) {
+            e.preventDefault();
+            bulkResendGiftEmails();
+        });
+
+        // Handle individual checkbox clicks
+        $(document).on('change', '.mpgr-gift-checkbox', function() {
+            updateBulkActions();
+        });
+
+        // Handle header checkbox (select all)
+        $(document).on('change', '#mpgr-select-all-header', function() {
+            if ($(this).prop('checked')) {
+                selectAllUnclaimed();
+            } else {
+                deselectAll();
+            }
+        });
+
+        // Initialize bulk actions on page load
+        updateBulkActions();
 
         // Add loading indicator for table
         $('.mpgr-table').on('load', function() {
