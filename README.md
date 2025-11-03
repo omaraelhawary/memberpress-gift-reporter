@@ -4,13 +4,31 @@ Tags: memberpress, gifting, reports, analytics, csv export
 Requires at least: 5.0
 Tested up to: 6.8
 Requires PHP: 7.4
-Stable tag: 1.3.0
+Stable tag: 1.4.0
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
 A WordPress plugin that generates comprehensive reports for the MemberPress Gifting add-on, showing the linkage between gift givers and recipients.
 
 ## 📝 Changelog
+
+### Version 1.4.0 (2025-11-03)
+
+#### 🎉 New Features
+- **Bulk Resend Gift Emails**: New bulk action to send reminder emails to multiple unclaimed gifts at once
+- **Select All Unclaimed**: Quick selection feature to easily select all unclaimed gifts for bulk operations
+- **Batch Processing**: Smart batch processing for bulk email sending with progress tracking
+
+#### 🎨 Improvements
+- **Enhanced Bulk Operations**: Improved UI for managing multiple gift emails simultaneously
+- **Better User Experience**: Streamlined workflow for sending reminder emails to gifters
+- **Progress Feedback**: Clear feedback on bulk operations with success/failure counts
+
+#### 🔧 Technical Updates
+- Added bulk email handler with rate limiting and error handling
+- Implemented checkbox selection system for bulk actions
+- Enhanced email validation and delivery tracking
+- Improved database queries for better performance on bulk operations
 
 ### Version 1.3.0 (2025-10-30)
 
