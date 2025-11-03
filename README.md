@@ -4,13 +4,30 @@ Tags: memberpress, gifting, reports, analytics, csv export
 Requires at least: 5.0
 Tested up to: 6.8
 Requires PHP: 7.4
-Stable tag: 1.4.0
+Stable tag: 1.4.1
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
 A WordPress plugin that generates comprehensive reports for the MemberPress Gifting add-on, showing the linkage between gift givers and recipients.
 
 ## 📝 Changelog
+
+### Version 1.4.1 (2025-11-03)
+
+#### 🎉 New Features
+- **Email Template Override Support**: Customers can now override the reminder email template by placing a custom template in their theme directory
+- **Template System**: New template rendering system with theme override capability following WordPress standards
+
+#### 🎨 Improvements
+- **Customizable Emails**: Easy customization of reminder email content, styling, and layout
+- **Theme Integration**: Seamless integration with child themes and parent themes
+- **Developer Friendly**: Template override system with clear documentation and examples
+
+#### 🔧 Technical Updates
+- Refactored email sending methods to use template system
+- Added template location methods with theme override support
+- Created default email template file in `views/emails/reminder-email.php`
+- Enhanced documentation with template override instructions
 
 ### Version 1.4.0 (2025-11-03)
 
@@ -195,6 +212,69 @@ You can customize the plugin by:
 1. **Styling**: Modify `assets/css/style.css`
 2. **Functionality**: Extend the `MPGR_Gift_Report` class
 3. **Admin Interface**: Customize `includes/class-admin.php`
+4. **Email Templates**: Override email templates in your theme (see below)
+
+### Email Template Overrides
+
+You can customize the reminder email template by copying it to your theme directory. This allows you to modify the email content, styling, and layout without losing your changes when the plugin updates.
+
+#### How to Override the Reminder Email Template
+
+1. **Copy the template file** to your theme directory:
+   ```
+   Copy from: wp-content/plugins/memberpress-gift-reporter/views/emails/reminder-email.php
+   Copy to:   wp-content/themes/your-theme/memberpress-gift-reporter/emails/reminder-email.php
+   ```
+
+2. **Create the directory structure** in your theme:
+   - Create a folder: `memberpress-gift-reporter`
+   - Inside that, create a folder: `emails`
+   - Place the template file: `reminder-email.php`
+
+3. **Customize the template** to your needs. The template receives these variables:
+   - `$product_name` - The name of the gifted product/membership
+   - `$redemption_link` - The URL where recipients can redeem the gift
+   - `$site_name` - The name of your website
+
+#### Example Override
+
+**Path:** `wp-content/themes/your-theme/memberpress-gift-reporter/emails/reminder-email.php`
+
+```php
+<?php
+/**
+ * Custom Reminder Email Template
+ * This file overrides the default plugin template
+ */
+
+if ( ! defined( 'ABSPATH' ) ) {
+	exit;
+}
+?>
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <!-- Your custom HTML/CSS here -->
+</head>
+<body>
+    <!-- Your custom email content using:
+         <?php echo esc_html( $product_name ); ?>
+         <?php echo esc_url( $redemption_link ); ?>
+         <?php echo esc_html( $site_name ); ?>
+    -->
+</body>
+</html>
+```
+
+#### Child Theme Support
+
+If you're using a child theme, the plugin will check in this order:
+1. Child theme directory: `your-child-theme/memberpress-gift-reporter/emails/reminder-email.php`
+2. Parent theme directory: `your-parent-theme/memberpress-gift-reporter/emails/reminder-email.php`
+3. Plugin directory: `memberpress-gift-reporter/views/emails/reminder-email.php` (default)
+
+This ensures your customizations persist even after plugin updates!
 
 ## 🔒 Security
 

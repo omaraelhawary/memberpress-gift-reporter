@@ -34,6 +34,128 @@ class MPGR_Gift_Report {
 		add_action( 'rest_api_init', array( $this, 'register_rest_routes' ) );
 	}
     
+    /**
+     * Locate email template with theme override support
+     * 
+     * Checks for template in theme directory first, then falls back to plugin directory.
+     * Theme template path: your-theme/memberpress-gift-reporter/emails/{template-name}.php
+     * Plugin template path: plugin/views/emails/{template-name}.php
+     * 
+     * @param string $template_name The template name (without .php extension)
+     * @return string Full path to the template file
+     */
+    private function locate_email_template( $template_name ) {
+        // Sanitize template name to prevent directory traversal
+        $template_name = sanitize_file_name( $template_name );
+        
+        // Check in theme directory first (for overrides)
+        $theme_template = get_stylesheet_directory() . '/memberpress-gift-reporter/emails/' . $template_name . '.php';
+        if ( file_exists( $theme_template ) ) {
+            return $theme_template;
+        }
+        
+        // Check in parent theme directory (for child themes)
+        $parent_template = get_template_directory() . '/memberpress-gift-reporter/emails/' . $template_name . '.php';
+        if ( file_exists( $parent_template ) ) {
+            return $parent_template;
+        }
+        
+        // Fall back to plugin template
+        $plugin_template = MPGR_PLUGIN_PATH . 'views/emails/' . $template_name . '.php';
+        if ( file_exists( $plugin_template ) ) {
+            return $plugin_template;
+        }
+        
+        // Return plugin template path even if it doesn't exist (will show error)
+        return $plugin_template;
+    }
+    
+    /**
+     * Render email template with variables
+     * 
+     * @param string $template_name The template name (without .php extension)
+     * @param array $variables Associative array of variables to pass to template
+     * @return string Rendered template content
+     */
+    private function render_email_template( $template_name, $variables = array() ) {
+        $template_path = $this->locate_email_template( $template_name );
+        
+        if ( ! file_exists( $template_path ) ) {
+            // Fallback to inline template if file doesn't exist
+            return $this->get_fallback_email_template( $variables );
+        }
+        
+        // Extract variables for template
+        extract( $variables, EXTR_SKIP ); // phpcs:ignore WordPress.PHP.DontExtract -- Safe extraction for template variables
+        
+        // Start output buffering
+        ob_start();
+        include $template_path;
+        return ob_get_clean();
+    }
+    
+    /**
+     * Fallback email template (used if template file doesn't exist)
+     * 
+     * @param array $variables Template variables
+     * @return string HTML email content
+     */
+    private function get_fallback_email_template( $variables ) {
+        $product_name = isset( $variables['product_name'] ) ? $variables['product_name'] : '';
+        $redemption_link = isset( $variables['redemption_link'] ) ? $variables['redemption_link'] : '';
+        $site_name = isset( $variables['site_name'] ) ? $variables['site_name'] : get_bloginfo( 'name' );
+        
+        return sprintf(
+            '<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>%1$s</title>
+    <style>
+        body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px; }
+        .header { background-color: #f8f9fa; padding: 20px; border-radius: 8px; margin-bottom: 20px; }
+        .content { background-color: #ffffff; padding: 20px; border-radius: 8px; border: 1px solid #e9ecef; }
+        .coupon-code { background-color: #e3f2fd; padding: 15px; border-radius: 6px; border-left: 4px solid #2196f3; margin: 20px 0; font-family: monospace; font-size: 16px; font-weight: bold; }
+        .redemption-link { background-color: #f3e5f5; padding: 15px; border-radius: 6px; border-left: 4px solid #9c27b0; margin: 20px 0; }
+        .redemption-link a { color: #9c27b0; text-decoration: none; font-weight: bold; }
+        .redemption-link a:hover { text-decoration: underline; }
+        .footer { margin-top: 30px; padding-top: 20px; border-top: 1px solid #e9ecef; color: #6c757d; font-size: 14px; }
+        .greeting { font-size: 18px; font-weight: bold; margin-bottom: 20px; }
+        .product-name { font-weight: bold; color: #2c3e50; }
+        .thank-you { font-style: italic; color: #27ae60; }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1 style="margin: 0; color: #2c3e50;">🎁 Gift Membership Purchase</h1>
+    </div>
+    
+    <div class="content">
+        <div class="greeting">Hello!</div>
+        
+        <p>You have purchased a gift membership for <span class="product-name">%1$s</span>.</p>
+        
+        <div class="redemption-link">
+            <strong>The recipient can redeem this gift by visiting:</strong><br>
+            <a href="%2$s">%2$s</a>
+        </div>
+        
+        <p class="thank-you">Thank you for your purchase!</p>
+        
+        <div class="footer">
+            <p>Best regards,<br>
+            <strong>%3$s</strong></p>
+        </div>
+    </div>
+</body>
+</html>',
+            esc_html( $product_name ),
+            esc_url( $redemption_link ),
+            esc_html( $site_name )
+        );
+    }
+    
 
     
     /**
@@ -126,56 +248,12 @@ class MPGR_Gift_Report {
 		// translators: %s is the product name
 		$subject = sprintf(__('Your Gift Purchase - %s', 'memberpress-gift-reporter'), $product_name);
 		
-		// Create HTML email message with proper formatting
-		$message = sprintf(
-			'<!DOCTYPE html>
-<html>
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>%1$s</title>
-    <style>
-        body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px; }
-        .header { background-color: #f8f9fa; padding: 20px; border-radius: 8px; margin-bottom: 20px; }
-        .content { background-color: #ffffff; padding: 20px; border-radius: 8px; border: 1px solid #e9ecef; }
-        .coupon-code { background-color: #e3f2fd; padding: 15px; border-radius: 6px; border-left: 4px solid #2196f3; margin: 20px 0; font-family: monospace; font-size: 16px; font-weight: bold; }
-        .redemption-link { background-color: #f3e5f5; padding: 15px; border-radius: 6px; border-left: 4px solid #9c27b0; margin: 20px 0; }
-        .redemption-link a { color: #9c27b0; text-decoration: none; font-weight: bold; }
-        .redemption-link a:hover { text-decoration: underline; }
-        .footer { margin-top: 30px; padding-top: 20px; border-top: 1px solid #e9ecef; color: #6c757d; font-size: 14px; }
-        .greeting { font-size: 18px; font-weight: bold; margin-bottom: 20px; }
-        .product-name { font-weight: bold; color: #2c3e50; }
-        .thank-you { font-style: italic; color: #27ae60; }
-    </style>
-</head>
-<body>
-    <div class="header">
-        <h1 style="margin: 0; color: #2c3e50;">🎁 Gift Membership Purchase</h1>
-    </div>
-    
-    <div class="content">
-        <div class="greeting">Hello!</div>
-        
-        <p>You have purchased a gift membership for <span class="product-name">%1$s</span>.</p>
-        
-        <div class="redemption-link">
-            <strong>The recipient can redeem this gift by visiting:</strong><br>
-            <a href="%2$s">%2$s</a>
-        </div>
-        
-        <p class="thank-you">Thank you for your purchase!</p>
-        
-        <div class="footer">
-            <p>Best regards,<br>
-            <strong>%3$s</strong></p>
-        </div>
-    </div>
-</body>
-</html>',
-			$product_name,
-			$redemption_link,
-			get_bloginfo('name')
-		);
+		// Render email template with variables
+		$message = $this->render_email_template( 'reminder-email', array(
+			'product_name'    => $product_name,
+			'redemption_link' => $redemption_link,
+			'site_name'       => get_bloginfo('name'),
+		) );
 
 		// Set headers for HTML email
 		$headers = array(
@@ -354,56 +432,12 @@ class MPGR_Gift_Report {
 			// translators: %s is the product name
 			$subject = sprintf(__('Your Gift Purchase - %s', 'memberpress-gift-reporter'), $product_name);
 			
-			// Create HTML email message with proper formatting (same as individual resend)
-			$message = sprintf(
-				'<!DOCTYPE html>
-<html>
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>%1$s</title>
-    <style>
-        body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px; }
-        .header { background-color: #f8f9fa; padding: 20px; border-radius: 8px; margin-bottom: 20px; }
-        .content { background-color: #ffffff; padding: 20px; border-radius: 8px; border: 1px solid #e9ecef; }
-        .coupon-code { background-color: #e3f2fd; padding: 15px; border-radius: 6px; border-left: 4px solid #2196f3; margin: 20px 0; font-family: monospace; font-size: 16px; font-weight: bold; }
-        .redemption-link { background-color: #f3e5f5; padding: 15px; border-radius: 6px; border-left: 4px solid #9c27b0; margin: 20px 0; }
-        .redemption-link a { color: #9c27b0; text-decoration: none; font-weight: bold; }
-        .redemption-link a:hover { text-decoration: underline; }
-        .footer { margin-top: 30px; padding-top: 20px; border-top: 1px solid #e9ecef; color: #6c757d; font-size: 14px; }
-        .greeting { font-size: 18px; font-weight: bold; margin-bottom: 20px; }
-        .product-name { font-weight: bold; color: #2c3e50; }
-        .thank-you { font-style: italic; color: #27ae60; }
-    </style>
-</head>
-<body>
-    <div class="header">
-        <h1 style="margin: 0; color: #2c3e50;">🎁 Gift Membership Purchase</h1>
-    </div>
-    
-    <div class="content">
-        <div class="greeting">Hello!</div>
-        
-        <p>You have purchased a gift membership for <span class="product-name">%1$s</span>.</p>
-        
-        <div class="redemption-link">
-            <strong>The recipient can redeem this gift by visiting:</strong><br>
-            <a href="%2$s">%2$s</a>
-        </div>
-        
-        <p class="thank-you">Thank you for your purchase!</p>
-        
-        <div class="footer">
-            <p>Best regards,<br>
-            <strong>%3$s</strong></p>
-        </div>
-    </div>
-</body>
-</html>',
-				$product_name,
-				$redemption_link,
-				get_bloginfo('name')
-			);
+			// Render email template with variables
+			$message = $this->render_email_template( 'reminder-email', array(
+				'product_name'    => $product_name,
+				'redemption_link' => $redemption_link,
+				'site_name'       => get_bloginfo('name'),
+			) );
 
 			// Set headers for HTML email
 			$headers = array(
