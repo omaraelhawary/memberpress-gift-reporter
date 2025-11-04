@@ -12,13 +12,13 @@ A WordPress plugin that generates comprehensive reports for the MemberPress Gift
 
 ## 📝 Changelog
 
-### Version 1.5.1 (2025-01-22)
+### Version 1.5.1 (2025-11-04)
 
 #### 🐛 Bug Fixes
 - Fixed various bugs and issues from version 1.5.0
 - Improved stability and performance
 
-### Version 1.5.0 (2025-01-15)
+### Version 1.5.0 (2025-11-04)
 
 #### 🎉 New Features
 - **Daily Cron Schedule**: Changed reminder cron schedule from hourly to daily for better performance
