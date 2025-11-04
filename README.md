@@ -4,13 +4,29 @@ Tags: memberpress, gifting, reports, analytics, csv export
 Requires at least: 5.0
 Tested up to: 6.8
 Requires PHP: 7.4
-Stable tag: 1.4.1
+Stable tag: 1.5.0
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
 A WordPress plugin that generates comprehensive reports for the MemberPress Gifting add-on, showing the linkage between gift givers and recipients.
 
 ## 📝 Changelog
+
+### Version 1.5.0 (2025-01-15)
+
+#### 🎉 New Features
+- **Daily Cron Schedule**: Changed reminder cron schedule from hourly to daily for better performance
+- **Orphaned Hook Cleanup**: Automatic cleanup of old/orphaned cron hooks on plugin load
+
+#### 🎨 Improvements
+- **Better UI Layout**: Fixed checkbox alignment with description text in reminder settings
+- **Code Cleanup**: Removed debug code and console.log statements from production code
+
+#### 🔧 Technical Updates
+- Updated cron schedule from hourly to daily for reminder processing
+- Added automatic cleanup for orphaned cron hooks (`mpgr_send_reminders`, `mpgr_check_reminders`, `mpgr_send_reminder_emails`)
+- Improved code quality by removing debug statements and comments
+- Enhanced initialization process to clean up old hooks on every load
 
 ### Version 1.4.1 (2025-11-03)
 

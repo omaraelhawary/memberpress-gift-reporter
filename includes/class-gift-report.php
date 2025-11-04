@@ -465,7 +465,7 @@ class MPGR_Gift_Report {
 
 			if ($sent) {
 				$success_count++;
-				// Track successful sends for debugging - use the actual recipient email
+				// Track successful sends - use the actual recipient email
 				$sent_details[] = array(
 					'gift_id' => $gift_transaction_id,
 					'email' => $recipient_email,
@@ -496,7 +496,7 @@ class MPGR_Gift_Report {
 			'success_count' => $success_count,
 			'failed_count' => $failed_count,
 			'failed_gifts' => $failed_gifts,
-			'sent_details' => $sent_details // Include details for debugging
+			'sent_details' => $sent_details
 		));
 	}
     

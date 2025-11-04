@@ -430,7 +430,7 @@
                 if (response.success) {
                     var message = response.data.message;
                     
-                    // Show detailed debugging info if available (for troubleshooting)
+                    // Show detailed info if available
                     if (response.data.sent_details && response.data.sent_details.length > 0) {
                         var uniqueEmails = [];
                         var emailCounts = {};
@@ -450,11 +450,6 @@
                     }
                     
                     showMessage(message, 'success');
-                    
-                    // Log to console for debugging
-                    if (response.data.sent_details) {
-                        console.log('Bulk email details:', response.data.sent_details);
-                    }
                     
                     // Deselect all after successful send
                     deselectAll();

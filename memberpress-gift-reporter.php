@@ -3,7 +3,7 @@
  * Plugin Name: MemberPress Gift Reporter
  * Plugin URI: https://github.com/omaraelhawary/memberpress-gift-reporter
  * Description: Generate comprehensive reports for MemberPress Gifting add-on, showing the linkage between gift givers and recipients.
- * Version: 1.4.1
+ * Version: 1.5.0
  * Author: Omar ElHawary
  * Author URI: https://www.linkedin.com/in/omaraelhawary/
  * License: GPL v2 or later
@@ -15,7 +15,7 @@
  * Requires PHP: 7.4
  * 
  * @package MemberPressGiftReporter
- * @version 1.4.1
+ * @version 1.5.0
  */
 
 // Prevent direct access.
@@ -24,7 +24,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 
 // Define plugin constants.
-define( 'MPGR_VERSION', '1.4.1' );
+define( 'MPGR_VERSION', '1.5.0' );
 define( 'MPGR_PLUGIN_URL', plugin_dir_url( __FILE__ ) );
 define( 'MPGR_PLUGIN_PATH', plugin_dir_path( __FILE__ ) );
 define( 'MPGR_PLUGIN_BASENAME', plugin_basename( __FILE__ ) );
@@ -63,6 +63,23 @@ class MemberPressGiftReporter {
 		// Register activation/deactivation hooks.
 		register_activation_hook( __FILE__, array( $this, 'activate' ) );
 		register_deactivation_hook( __FILE__, array( $this, 'deactivate' ) );
+
+		// Clean up orphaned cron hooks on every load (for existing installations)
+		$old_hooks = array( 'mpgr_check_reminders', 'mpgr_send_reminder_emails', 'mpgr_send_reminders' );
+		foreach ( $old_hooks as $hook ) {
+			wp_clear_scheduled_hook( $hook );
+		}
+
+		// Load reminders class and register hooks immediately
+		// This ensures the hooks are always available, even before plugins_loaded
+		if ( file_exists( MPGR_PLUGIN_PATH . 'includes/class-reminders.php' ) ) {
+			require_once MPGR_PLUGIN_PATH . 'includes/class-reminders.php';
+			
+			// Register cron hook immediately if class exists
+			if ( class_exists( 'MPGR_Reminders' ) ) {
+				add_action( 'mpgr_run_gift_reminders', array( 'MPGR_Reminders', 'run_scheduled_reminders' ) );
+			}
+		}
 
 		// Check dependencies after plugins are loaded.
 		add_action( 'plugins_loaded', array( $this, 'check_dependencies' ) );
@@ -127,6 +144,7 @@ class MemberPressGiftReporter {
 		// Initialize the report functionality.
 		new MPGR_Gift_Report();
 
+
 		// Load admin functionality.
 		if ( is_admin() ) {
 			require_once MPGR_PLUGIN_PATH . 'includes/class-admin.php';
@@ -141,6 +159,35 @@ class MemberPressGiftReporter {
 		// Create any necessary database tables or options.
 		add_option( 'mpgr_version', MPGR_VERSION );
 
+		// Load reminders class to ensure class exists
+		require_once MPGR_PLUGIN_PATH . 'includes/class-reminders.php';
+		
+		// Register the cron hook (ensuring it's registered during activation)
+		if ( class_exists( 'MPGR_Reminders' ) ) {
+			add_action( 'mpgr_run_gift_reminders', array( 'MPGR_Reminders', 'run_scheduled_reminders' ) );
+		}
+
+		// Clean up any old/incorrect cron hooks
+		$old_hooks = array( 'mpgr_check_reminders', 'mpgr_send_reminder_emails', 'mpgr_send_reminders' );
+		foreach ( $old_hooks as $hook ) {
+			$timestamp = wp_next_scheduled( $hook );
+			if ( $timestamp ) {
+				wp_unschedule_event( $timestamp, $hook );
+			}
+			// Also unschedule all occurrences if multiple exist
+			wp_clear_scheduled_hook( $hook );
+		}
+
+		// Unschedule existing event if it exists
+		$timestamp = wp_next_scheduled( 'mpgr_run_gift_reminders' );
+		if ( $timestamp ) {
+			wp_unschedule_event( $timestamp, 'mpgr_run_gift_reminders' );
+		}
+		
+		// Schedule reminder cron event
+		// Use wp_schedule_event which will add the event to the cron array
+		wp_schedule_event( time(), 'daily', 'mpgr_run_gift_reminders' );
+
 		// Flush rewrite rules.
 		flush_rewrite_rules();
 	}
@@ -149,6 +196,12 @@ class MemberPressGiftReporter {
      * Plugin deactivation
      */
 	public function deactivate() {
+		// Unschedule reminder cron event.
+		$timestamp = wp_next_scheduled( 'mpgr_run_gift_reminders' );
+		if ( $timestamp ) {
+			wp_unschedule_event( $timestamp, 'mpgr_run_gift_reminders' );
+		}
+
 		// Clean up if necessary.
 		flush_rewrite_rules();
 	}
