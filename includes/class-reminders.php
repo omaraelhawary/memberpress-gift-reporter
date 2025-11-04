@@ -491,7 +491,7 @@ class MPGR_Reminders {
 	 * @param array  $variables Template variables
 	 * @return string Rendered template
 	 */
-	private static function render_email_template( $template_name, $variables = array() ) {
+	public static function render_email_template( $template_name, $variables = array() ) {
 		$template_path = self::locate_email_template( $template_name );
 		
 		if ( ! file_exists( $template_path ) ) {
@@ -501,16 +501,15 @@ class MPGR_Reminders {
 		// Extract variables for template (MemberPress style)
 		extract( $variables, EXTR_SKIP ); // phpcs:ignore WordPress.PHP.DontExtract -- Safe extraction for template variables
 		
-		// For reminder-email template, include header first, then template (which includes body + footer)
+		// For reminder-email template, include header first, then template (body only), then footer
 		if ( 'reminder-email' === $template_name ) {
 			$header_content = self::get_email_header( $variables );
 			ob_start();
 			include $template_path;
-			$body_footer_content = ob_get_clean();
-			// Header opens <div class="content">, template provides body + footer, then we close content div and HTML
-			return $header_content . $body_footer_content . '    </div>
-</body>
-</html>';
+			$body_content = ob_get_clean();
+			$footer_content = self::get_email_footer( $variables );
+			// Header opens <div class="content">, template provides body, footer closes content div and HTML
+			return $header_content . $body_content . $footer_content;
 		}
 		
 		// For other templates, just include the template
@@ -582,13 +581,8 @@ class MPGR_Reminders {
 			return ob_get_clean();
 		}
 		
-		// Default footer (no longer using separate footer file - footer is in reminder-email.php)
-		$site_name = isset( $site_name ) ? $site_name : ( isset( $blogname ) ? $blogname : get_bloginfo( 'name' ) );
+		// Return just closing tags (no footer content)
 		return '    </div>
-    <div class="footer">
-        <p>Best regards,<br>
-        <strong>' . esc_html( $site_name ) . '</strong></p>
-    </div>
 </body>
 </html>';
 	}
@@ -659,10 +653,8 @@ class MPGR_Reminders {
 
 <p style="font-style: italic; color: #27ae60;">Thank you for your purchase!</p>';
 		
-		// Footer is now included in reminder-email.php template, but for fallback use default
-		$footer_content = '<div style="margin-top: 30px; padding-top: 20px; border-top: 1px solid #e9ecef; color: #6c757d; font-size: 14px;">
-            <p>Best regards,<br><strong>' . esc_html( $site_name ) . '</strong></p>
-        </div>
+		// Footer - just closing tags (no footer content)
+		$footer_content = '    </div>
 </body>
 </html>';
 		

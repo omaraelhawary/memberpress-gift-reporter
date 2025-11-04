@@ -88,6 +88,17 @@ class MPGR_Gift_Report {
         // Extract variables for template
         extract( $variables, EXTR_SKIP ); // phpcs:ignore WordPress.PHP.DontExtract -- Safe extraction for template variables
         
+        // For reminder-email template, include header first, then template (body only), then footer
+        if ( 'reminder-email' === $template_name && class_exists( 'MPGR_Reminders' ) ) {
+            $header_content = MPGR_Reminders::get_email_header( $variables );
+            ob_start();
+            include $template_path;
+            $body_content = ob_get_clean();
+            $footer_content = MPGR_Reminders::get_email_footer( $variables );
+            // Header opens <div class="content">, template provides body, footer closes content div and HTML
+            return $header_content . $body_content . $footer_content;
+        }
+        
         // Start output buffering
         ob_start();
         include $template_path;
@@ -143,10 +154,6 @@ class MPGR_Gift_Report {
         
         <p class="thank-you">Thank you for your purchase!</p>
         
-        <div class="footer">
-            <p>Best regards,<br>
-            <strong>%3$s</strong></p>
-        </div>
     </div>
 </body>
 </html>',
@@ -244,16 +251,55 @@ class MPGR_Gift_Report {
 		// Generate redemption link
 		$redemption_link = home_url('/memberpress-checkout/?coupon=' . urlencode($coupon_code));
 
-		// Send gift email
-		// translators: %s is the product name
-		$subject = sprintf(__('Your Gift Purchase - %s', 'memberpress-gift-reporter'), $product_name);
-		
-		// Render email template with variables
-		$message = $this->render_email_template( 'reminder-email', array(
+		// Get user data for template variables
+		$user = get_userdata($gift_transaction->user_id);
+		$user_login      = $user ? $user->user_login : '';
+		$user_email      = $user ? $user->user_email : '';
+		$user_first_name = $user ? get_user_meta( $user->ID, 'first_name', true ) : '';
+		$user_last_name  = $user ? get_user_meta( $user->ID, 'last_name', true ) : '';
+		$blogname        = get_bloginfo('name');
+
+		// Prepare email template variables (same as reminders)
+		$template_vars = array(
 			'product_name'    => $product_name,
 			'redemption_link' => $redemption_link,
-			'site_name'       => get_bloginfo('name'),
-		) );
+			'site_name'       => $blogname,
+			'blogname'        => $blogname,
+			'user_login'      => $user_login,
+			'user_email'      => $user_email,
+			'user_first_name' => $user_first_name,
+			'user_last_name'  => $user_last_name,
+		);
+
+		// Get reminder settings to use same email template/subject as reminders
+		$settings = MPGR_Reminders::get_settings();
+		
+		// Get email body (use same logic as reminders)
+		$gifter_email_body = ! empty( $settings['gifter_email_body'] ) ? $settings['gifter_email_body'] : ( ! empty( $settings['email_body'] ) ? $settings['email_body'] : '' );
+		
+		if ( ! empty( $gifter_email_body ) ) {
+			// Use custom email body with variable replacement (MemberPress style: {$variable})
+			$message = $gifter_email_body;
+			$message = MPGR_Reminders::replace_email_variables( $message, $template_vars );
+			
+			// Wrap custom body with header/footer templates
+			$header_content = MPGR_Reminders::get_email_header( $template_vars );
+			$footer_content = MPGR_Reminders::get_email_footer( $template_vars );
+			$message = $header_content . $message . $footer_content;
+		} else {
+			// Render email template (includes header/footer automatically)
+			$message = MPGR_Reminders::render_email_template( 'reminder-email', $template_vars );
+		}
+
+		// Get email subject (use same logic as reminders)
+		$gifter_subject = ! empty( $settings['gifter_email_subject'] ) ? $settings['gifter_email_subject'] : ( ! empty( $settings['email_subject'] ) ? $settings['email_subject'] : '' );
+		
+		if ( ! empty( $gifter_subject ) ) {
+			$subject = MPGR_Reminders::replace_email_variables( $gifter_subject, $template_vars );
+		} else {
+			// translators: %s is the product name
+			$subject = sprintf( __( 'Your Gift Purchase - %s', 'memberpress-gift-reporter' ), $product_name );
+		}
 
 		// Set headers for HTML email
 		$headers = array(
@@ -428,16 +474,54 @@ class MPGR_Gift_Report {
 			// Generate redemption link
 			$redemption_link = home_url('/memberpress-checkout/?coupon=' . urlencode($coupon_code));
 
-			// Send gift email
-			// translators: %s is the product name
-			$subject = sprintf(__('Your Gift Purchase - %s', 'memberpress-gift-reporter'), $product_name);
-			
-			// Render email template with variables
-			$message = $this->render_email_template( 'reminder-email', array(
+			// Get user data for template variables
+			$user_login      = $gifter_user->user_login;
+			$user_email      = $gifter_user->user_email;
+			$user_first_name = get_user_meta( $gifter_user->ID, 'first_name', true );
+			$user_last_name  = get_user_meta( $gifter_user->ID, 'last_name', true );
+			$blogname        = get_bloginfo('name');
+
+			// Prepare email template variables (same as reminders)
+			$template_vars = array(
 				'product_name'    => $product_name,
 				'redemption_link' => $redemption_link,
-				'site_name'       => get_bloginfo('name'),
-			) );
+				'site_name'       => $blogname,
+				'blogname'        => $blogname,
+				'user_login'      => $user_login,
+				'user_email'      => $user_email,
+				'user_first_name' => $user_first_name,
+				'user_last_name'  => $user_last_name,
+			);
+
+			// Get reminder settings to use same email template/subject as reminders
+			$settings = MPGR_Reminders::get_settings();
+			
+			// Get email body (use same logic as reminders)
+			$gifter_email_body = ! empty( $settings['gifter_email_body'] ) ? $settings['gifter_email_body'] : ( ! empty( $settings['email_body'] ) ? $settings['email_body'] : '' );
+			
+			if ( ! empty( $gifter_email_body ) ) {
+				// Use custom email body with variable replacement (MemberPress style: {$variable})
+				$message = $gifter_email_body;
+				$message = MPGR_Reminders::replace_email_variables( $message, $template_vars );
+				
+				// Wrap custom body with header/footer templates
+				$header_content = MPGR_Reminders::get_email_header( $template_vars );
+				$footer_content = MPGR_Reminders::get_email_footer( $template_vars );
+				$message = $header_content . $message . $footer_content;
+			} else {
+				// Render email template (includes header/footer automatically)
+				$message = MPGR_Reminders::render_email_template( 'reminder-email', $template_vars );
+			}
+
+			// Get email subject (use same logic as reminders)
+			$gifter_subject = ! empty( $settings['gifter_email_subject'] ) ? $settings['gifter_email_subject'] : ( ! empty( $settings['email_subject'] ) ? $settings['email_subject'] : '' );
+			
+			if ( ! empty( $gifter_subject ) ) {
+				$subject = MPGR_Reminders::replace_email_variables( $gifter_subject, $template_vars );
+			} else {
+				// translators: %s is the product name
+				$subject = sprintf( __( 'Your Gift Purchase - %s', 'memberpress-gift-reporter' ), $product_name );
+			}
 
 			// Set headers for HTML email
 			$headers = array(

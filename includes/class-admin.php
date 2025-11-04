@@ -624,7 +624,7 @@ class MPGR_Admin {
 	}
 
 	/**
-	 * Get default email body (content + footer, no header/styles)
+	 * Get default email body (includes footer with Best Regards - header is added automatically)
 	 * 
 	 * @return string Email body HTML
 	 */
@@ -641,8 +641,8 @@ class MPGR_Admin {
 <p style="font-style: italic; color: #27ae60;">Thank you for your purchase!</p>
 
 <div style="margin-top: 30px; padding-top: 20px; border-top: 1px solid #e9ecef; color: #6c757d; font-size: 14px;">
-    <p>Best regards,<br>
-    <strong>{$site_name}</strong></p>
+    <p>Best Regards,<br>
+    <strong>{$blogname}</strong></p>
 </div>';
 	}
 
