@@ -1,6 +1,6 @@
 === MemberPress Gift Reporter ===
 Contributors: omaraelhawary
-Tags: memberpress, gifting, reports, analytics, csv export
+Tags: memberpress, gifting, reports, analytics, csv export, reminders, email automation
 Requires at least: 5.0
 Tested up to: 6.8
 Requires PHP: 7.4
@@ -116,6 +116,16 @@ A WordPress plugin that generates comprehensive reports for the MemberPress Gift
 - **Quick Actions**: Built-in action buttons for each gift transaction
   - 📧 Resend gift email to the gifter
   - 🔗 Copy redemption link to clipboard
+- **Bulk Operations**: Manage multiple gifts at once
+  - Select all unclaimed gifts for bulk operations
+  - Bulk resend reminder emails to multiple gifters
+  - Batch processing with progress tracking
+- **Automatic Reminder System**: Automated email reminders for unclaimed gifts
+  - Daily cron schedule for efficient processing
+  - Multiple customizable reminder schedules (hours or days)
+  - Fully customizable email templates with variable support
+  - Test email functionality to preview emails
+  - Theme override support for email templates
 - **Advanced Filtering System**: 10 powerful filters for precise data analysis
   - Date range filtering (purchase and redemption dates)
   - Gift status filtering (claimed/unclaimed)
@@ -126,7 +136,7 @@ A WordPress plugin that generates comprehensive reports for the MemberPress Gift
 - **Comprehensive Reports**: View detailed gift transaction data
 - **Filtered CSV Export**: Export only filtered data, not all data
 - **REST API**: Programmatic access to report data
-- **Modern Admin Interface**: Clean, responsive, and user-friendly dashboard
+- **Modern Admin Interface**: Clean, responsive, and user-friendly dashboard with tabbed navigation
 - **Mobile Optimized**: Touch-friendly interface for all devices
 - **Security**: Admin-only access with proper permissions
 
@@ -156,7 +166,11 @@ A WordPress plugin that generates comprehensive reports for the MemberPress Gift
 
 ### Admin Dashboard
 
-1. Go to **WordPress Admin** → **MemberPress** → **Gift Report**
+The plugin has two main tabs: **Gift Report** and **Reminders**.
+
+#### Gift Report Tab
+
+1. Go to **WordPress Admin** → **MemberPress** → **Gift Report** (Report tab)
 2. Use the advanced filtering system to narrow down your data:
    - **Date Filters**: Filter by purchase date range
    - **Status Filters**: Filter by claimed/unclaimed status
@@ -168,8 +182,28 @@ A WordPress plugin that generates comprehensive reports for the MemberPress Gift
 4. Use action buttons in the **Actions** column:
    - 📧 **Resend Email**: Click to resend the gift email to the gifter
    - 🔗 **Copy Link**: Click to copy the redemption link to your clipboard
-5. Click **Download CSV Report** to export filtered data
-6. Use **Clear Filters** to reset all filters quickly
+5. For bulk operations:
+   - Use **Select All Unclaimed** to quickly select all unclaimed gifts
+   - Click **Send Reminder Emails to Selected** to send emails to multiple gifters at once
+6. Click **Download CSV Report** to export filtered data
+7. Use **Clear Filters** to reset all filters quickly
+
+#### Reminders Tab
+
+1. Go to **WordPress Admin** → **MemberPress** → **Gift Report** → **Reminders** tab
+2. Enable automatic reminders by checking **Enable Automatic Reminders**
+3. Configure reminder schedules:
+   - Add multiple reminder schedules (hours or days after purchase)
+   - Each schedule can have different delays (e.g., 7 days, 14 days, 30 days)
+   - Reminders are sent automatically via daily cron job
+4. Customize email content:
+   - **Email Subject**: Customize the subject line with variables
+   - **Email Body**: Use the rich text editor to customize the email content
+   - Available variables: `{$product_name}`, `{$redemption_link}`, `{$site_name}`, `{$user_email}`, `{$user_first_name}`, etc.
+5. Test your email:
+   - Click **Send Test Email** to preview how the email will look
+   - Enter a test email address and send a sample email
+6. Click **Save Settings** to apply your changes
 
 ### REST API
 
@@ -247,10 +281,14 @@ You can customize the reminder email template by copying it to your theme direct
    - Inside that, create a folder: `emails`
    - Place the template file: `reminder-email.php`
 
-3. **Customize the template** to your needs. The template receives these variables:
-   - `$product_name` - The name of the gifted product/membership
-   - `$redemption_link` - The URL where recipients can redeem the gift
-   - `$site_name` - The name of your website
+3. **Customize the template** to your needs. The template receives these variables (MemberPress style format):
+   - `{$product_name}` - The name of the gifted product/membership
+   - `{$redemption_link}` - The URL where recipients can redeem the gift
+   - `{$site_name}` or `{$blogname}` - The name of your website
+   - `{$user_login}` - The gifter's username
+   - `{$user_email}` - The gifter's email address
+   - `{$user_first_name}` - The gifter's first name
+   - `{$user_last_name}` - The gifter's last name
 
 #### Example Override
 
@@ -267,21 +305,28 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 ?>
-<!DOCTYPE html>
-<html>
-<head>
-    <meta charset="UTF-8">
-    <!-- Your custom HTML/CSS here -->
-</head>
-<body>
-    <!-- Your custom email content using:
-         <?php echo esc_html( $product_name ); ?>
-         <?php echo esc_url( $redemption_link ); ?>
-         <?php echo esc_html( $site_name ); ?>
-    -->
-</body>
-</html>
+<div style="font-size: 18px; font-weight: bold; margin-bottom: 20px;">
+    Hello <?php echo esc_html( $user_first_name ? $user_first_name : 'there' ); ?>!
+</div>
+
+<p>You have purchased a gift membership for <strong><?php echo esc_html( $product_name ); ?></strong>.</p>
+
+<div style="background-color: #f3e5f5; padding: 15px; border-radius: 6px; border-left: 4px solid #9c27b0; margin: 20px 0;">
+    <strong>The recipient can redeem this gift by visiting:</strong><br>
+    <a href="<?php echo esc_url( $redemption_link ); ?>" style="color: #9c27b0; text-decoration: none; font-weight: bold;">
+        <?php echo esc_html( $redemption_link ); ?>
+    </a>
+</div>
+
+<p style="font-style: italic; color: #27ae60;">Thank you for your purchase!</p>
+
+<div style="margin-top: 30px; padding-top: 20px; border-top: 1px solid #e9ecef; color: #6c757d; font-size: 14px;">
+    <p>Best regards,<br>
+    <strong><?php echo esc_html( $site_name ); ?></strong></p>
+</div>
 ```
+
+**Note:** The email header and footer are automatically included by the plugin. The template file should contain only the body content between the header and footer.
 
 #### Child Theme Support
 
@@ -291,6 +336,11 @@ If you're using a child theme, the plugin will check in this order:
 3. Plugin directory: `memberpress-gift-reporter/views/emails/reminder-email.php` (default)
 
 This ensures your customizations persist even after plugin updates!
+
+#### Email Header Template Override
+
+You can also override the email header template:
+- Copy `views/emails/reminder-email-header.php` to `your-theme/memberpress-gift-reporter/emails/reminder-email-header.php`
 
 ## 🔒 Security
 
@@ -313,6 +363,15 @@ This ensures your customizations persist even after plugin updates!
 1. **Check File Permissions**: Ensure PHP can write to temp directory
 2. **Check Memory Limit**: Large datasets may require more memory
 3. **Check Timeout**: Long-running exports may timeout
+
+### Reminder Email Issues
+
+1. **Check Cron Jobs**: Verify WP-Cron is working (check if scheduled tasks run)
+2. **Check Email Settings**: Ensure WordPress email is configured correctly
+3. **Check Reminder Settings**: Verify reminders are enabled in the Reminders tab
+4. **Check Reminder Schedules**: Ensure at least one reminder schedule is configured
+5. **Test Email**: Use the "Send Test Email" button to verify email delivery
+6. **Check Email Template**: Verify the email template file exists and is readable
 
 ### Styling Issues
 
