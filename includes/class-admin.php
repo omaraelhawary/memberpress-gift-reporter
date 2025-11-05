@@ -211,6 +211,7 @@ class MPGR_Admin {
 		// Process reminder schedules
 		$reminder_schedules = array();
 		if ( isset( $_POST['mpgr_reminder_schedules'] ) && is_array( $_POST['mpgr_reminder_schedules'] ) ) {
+			// phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized -- Array values are sanitized individually in the loop below
 			$raw_schedules = wp_unslash( $_POST['mpgr_reminder_schedules'] );
 			foreach ( $raw_schedules as $schedule ) {
 				// Backward compatibility: check for old delay_days format
