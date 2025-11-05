@@ -1,6 +1,6 @@
 === MemberPress Gift Reporter ===
 Contributors: omaraelhawary
-Tags: memberpress, gifting, reports, analytics, csv export, reminders, email automation
+Tags: memberpress, gifting, reports, csv export, reminders
 Requires at least: 5.0
 Tested up to: 6.8
 Requires PHP: 7.4

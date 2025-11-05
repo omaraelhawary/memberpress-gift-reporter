@@ -211,7 +211,8 @@ class MPGR_Admin {
 		// Process reminder schedules
 		$reminder_schedules = array();
 		if ( isset( $_POST['mpgr_reminder_schedules'] ) && is_array( $_POST['mpgr_reminder_schedules'] ) ) {
-			foreach ( $_POST['mpgr_reminder_schedules'] as $schedule ) {
+			$raw_schedules = wp_unslash( $_POST['mpgr_reminder_schedules'] );
+			foreach ( $raw_schedules as $schedule ) {
 				// Backward compatibility: check for old delay_days format
 				if ( isset( $schedule['delay_days'] ) && $schedule['delay_days'] !== '' ) {
 					$delay_value = absint( $schedule['delay_days'] );

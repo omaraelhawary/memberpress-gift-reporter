@@ -170,7 +170,7 @@ class MPGR_Reminders {
 				// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery -- Necessary for reminder meta update
 				$exists = $wpdb->get_var(
 					$wpdb->prepare(
-						"SELECT COUNT(*) FROM {$table} WHERE transaction_id = %d AND meta_key = %s",
+						'SELECT COUNT(*) FROM ' . esc_sql( $table ) . ' WHERE transaction_id = %d AND meta_key = %s',
 						$gift->gift_transaction_id,
 						'_mpgr_reminder_sent_count'
 					)
@@ -205,7 +205,7 @@ class MPGR_Reminders {
 				// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery -- Necessary for reminder meta update
 				$exists = $wpdb->get_var(
 					$wpdb->prepare(
-						"SELECT COUNT(*) FROM {$table} WHERE transaction_id = %d AND meta_key = %s",
+						'SELECT COUNT(*) FROM ' . esc_sql( $table ) . ' WHERE transaction_id = %d AND meta_key = %s',
 						$gift->gift_transaction_id,
 						'_mpgr_last_reminder_ts'
 					)

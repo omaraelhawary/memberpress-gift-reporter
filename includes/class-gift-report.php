@@ -386,6 +386,7 @@ class MPGR_Gift_Report {
 		if (count($gift_transaction_ids) > $max_bulk_limit) {
 			wp_send_json_error( array( 
 				'message' => sprintf( 
+					/* translators: %d: Maximum number of gifts allowed per batch */
 					esc_html__( 'Too many gifts selected. Maximum %d gifts allowed per batch.', 'memberpress-gift-reporter' ), 
 					$max_bulk_limit 
 				) 
