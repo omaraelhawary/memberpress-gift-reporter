@@ -4,13 +4,21 @@ Tags: memberpress, gifting, reports, csv export, reminders
 Requires at least: 5.0
 Tested up to: 6.8
 Requires PHP: 7.4
-Stable tag: 1.5.1
+Stable tag: 1.5.2
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
 A WordPress plugin that generates comprehensive reports for the MemberPress Gifting add-on, showing the linkage between gift givers and recipients.
 
 ## 📝 Changelog
+
+### Version 1.5.2 (2025-11-06)
+
+#### 🐛 Bug Fixes
+- Fixed reminder scheduling issues and improved reliability
+- Enhanced reminder email delivery tracking
+- Improved cron job management for reminder system
+- Fixed edge cases in reminder schedule processing
 
 ### Version 1.5.1 (2025-11-04)
 
