@@ -144,6 +144,21 @@ class MemberPressGiftReporter {
 		// Initialize the report functionality.
 		new MPGR_Gift_Report();
 
+		// Ensure cron job is only scheduled if reminders are enabled
+		// This cleans up any orphaned cron jobs from before the fix
+		if ( class_exists( 'MPGR_Reminders' ) ) {
+			$settings = MPGR_Reminders::get_settings();
+			$timestamp = wp_next_scheduled( 'mpgr_run_gift_reminders' );
+			
+			if ( empty( $settings['enabled'] ) && $timestamp ) {
+				// Reminders are disabled but cron is scheduled - remove it
+				wp_unschedule_event( $timestamp, 'mpgr_run_gift_reminders' );
+				wp_clear_scheduled_hook( 'mpgr_run_gift_reminders' );
+			} elseif ( ! empty( $settings['enabled'] ) && ! $timestamp ) {
+				// Reminders are enabled but cron is not scheduled - schedule it
+				wp_schedule_event( time(), 'daily', 'mpgr_run_gift_reminders' );
+			}
+		}
 
 		// Load admin functionality.
 		if ( is_admin() ) {

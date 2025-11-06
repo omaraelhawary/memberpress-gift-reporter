@@ -261,6 +261,23 @@ class MPGR_Admin {
 		// Save settings
 		update_option( 'mpgr_reminder_settings', $settings );
 
+		// Manage cron job based on enabled setting
+		$timestamp = wp_next_scheduled( 'mpgr_run_gift_reminders' );
+		
+		if ( $enabled ) {
+			// If reminders are enabled, schedule the cron if not already scheduled
+			if ( ! $timestamp ) {
+				wp_schedule_event( time(), 'daily', 'mpgr_run_gift_reminders' );
+			}
+		} else {
+			// If reminders are disabled, unschedule the cron
+			if ( $timestamp ) {
+				wp_unschedule_event( $timestamp, 'mpgr_run_gift_reminders' );
+			}
+			// Also clear all occurrences just to be safe
+			wp_clear_scheduled_hook( 'mpgr_run_gift_reminders' );
+		}
+
 		// Show success message
 		add_action( 'admin_notices', array( $this, 'reminder_settings_saved_notice' ) );
 	}
