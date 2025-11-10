@@ -1,0 +1,9 @@
+blank_issues_enabled: true
+contact_links:
+  - name: Question or Support
+    url: https://github.com/omaraelhawary/memberpress-gift-reporter/discussions
+    about: Ask questions or get help with the plugin
+  - name: Security Issue
+    url: mailto:omaraelhawary@gmail.com
+    about: Report a security vulnerability (do not open a public issue)
+
