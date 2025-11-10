@@ -64,10 +64,12 @@ rsync -av --progress "${PLUGIN_DIR}/" "${BUILD_DIR}/${PLUGIN_NAME}/" \
     --exclude='BUILD.md' \
     --exclude='*.zip' \
     --exclude='CHANGELOG.md' \
+    --exclude='CODE_OF_CONDUCT.md' \
     --exclude='CONTRIBUTING.md' \
     --exclude='GITHUB_SETUP.md' \
     --exclude='INSTALL.md' \
     --exclude='SECURITY.md' \
+    --exclude='.github/' \
     --exclude='composer.json' \
     --exclude='package.json' \
     --exclude='phpcs.xml' \
