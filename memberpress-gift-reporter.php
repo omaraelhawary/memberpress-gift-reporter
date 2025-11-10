@@ -3,7 +3,7 @@
  * Plugin Name: MemberPress Gift Reporter
  * Plugin URI: https://github.com/omaraelhawary/memberpress-gift-reporter
  * Description: Generate comprehensive reports for MemberPress Gifting add-on, showing the linkage between gift givers and recipients.
- * Version: 1.5.2
+ * Version: 1.6.0
  * Author: Omar ElHawary
  * Author URI: https://www.linkedin.com/in/omaraelhawary/
  * License: GPL v2 or later
@@ -15,7 +15,7 @@
  * Requires PHP: 7.4
  * 
  * @package MemberPressGiftReporter
- * @version 1.5.2
+ * @version 1.6.0
  */
 
 // Prevent direct access.
@@ -24,7 +24,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 
 // Define plugin constants.
-define( 'MPGR_VERSION', '1.5.2' );
+define( 'MPGR_VERSION', '1.6.0' );
 define( 'MPGR_PLUGIN_URL', plugin_dir_url( __FILE__ ) );
 define( 'MPGR_PLUGIN_PATH', plugin_dir_path( __FILE__ ) );
 define( 'MPGR_PLUGIN_BASENAME', plugin_basename( __FILE__ ) );
@@ -81,8 +81,38 @@ class MemberPressGiftReporter {
 			}
 		}
 
+		// Load weekly summary class and register hooks immediately
+		if ( file_exists( MPGR_PLUGIN_PATH . 'includes/class-weekly-summary.php' ) ) {
+			require_once MPGR_PLUGIN_PATH . 'includes/class-weekly-summary.php';
+			
+			// Register cron hook immediately if class exists
+			if ( class_exists( 'MPGR_Weekly_Summary' ) ) {
+				add_action( 'mpgr_run_weekly_summary', array( 'MPGR_Weekly_Summary', 'run_weekly_summary' ) );
+			}
+		}
+
+		// Register custom cron schedules
+		add_filter( 'cron_schedules', array( $this, 'add_weekly_cron_schedule' ) );
+
 		// Check dependencies after plugins are loaded.
 		add_action( 'plugins_loaded', array( $this, 'check_dependencies' ) );
+	}
+    
+    /**
+     * Add custom weekly cron schedule
+     * 
+     * @param array $schedules Existing cron schedules
+     * @return array Modified schedules
+     */
+	public function add_weekly_cron_schedule( $schedules ) {
+		// Add weekly schedule if it doesn't exist
+		if ( ! isset( $schedules['weekly'] ) ) {
+			$schedules['weekly'] = array(
+				'interval' => WEEK_IN_SECONDS,
+				'display'  => __( 'Once Weekly', 'memberpress-gift-reporter' ),
+			);
+		}
+		return $schedules;
 	}
     
     /**
@@ -160,6 +190,27 @@ class MemberPressGiftReporter {
 			}
 		}
 
+		// Load weekly summary class if not already loaded
+		if ( ! class_exists( 'MPGR_Weekly_Summary' ) && file_exists( MPGR_PLUGIN_PATH . 'includes/class-weekly-summary.php' ) ) {
+			require_once MPGR_PLUGIN_PATH . 'includes/class-weekly-summary.php';
+		}
+
+		// Ensure weekly summary cron is scheduled only if enabled
+		if ( class_exists( 'MPGR_Weekly_Summary' ) ) {
+			$weekly_summary_settings = MPGR_Weekly_Summary::get_settings();
+			$timestamp = wp_next_scheduled( 'mpgr_run_weekly_summary' );
+			
+			if ( ! empty( $weekly_summary_settings['enabled'] ) && ! $timestamp ) {
+				// Schedule weekly summary (runs every Monday at 9 AM)
+				$next_monday = strtotime( 'next Monday 9:00 AM' );
+				wp_schedule_event( $next_monday, 'weekly', 'mpgr_run_weekly_summary' );
+			} elseif ( empty( $weekly_summary_settings['enabled'] ) && $timestamp ) {
+				// Weekly summary is disabled but cron is scheduled - remove it
+				wp_unschedule_event( $timestamp, 'mpgr_run_weekly_summary' );
+				wp_clear_scheduled_hook( 'mpgr_run_weekly_summary' );
+			}
+		}
+
 		// Load admin functionality.
 		if ( is_admin() ) {
 			require_once MPGR_PLUGIN_PATH . 'includes/class-admin.php';
@@ -180,6 +231,14 @@ class MemberPressGiftReporter {
 		// Register the cron hook (ensuring it's registered during activation)
 		if ( class_exists( 'MPGR_Reminders' ) ) {
 			add_action( 'mpgr_run_gift_reminders', array( 'MPGR_Reminders', 'run_scheduled_reminders' ) );
+		}
+
+		// Load weekly summary class to ensure class exists
+		require_once MPGR_PLUGIN_PATH . 'includes/class-weekly-summary.php';
+		
+		// Register the weekly summary cron hook
+		if ( class_exists( 'MPGR_Weekly_Summary' ) ) {
+			add_action( 'mpgr_run_weekly_summary', array( 'MPGR_Weekly_Summary', 'run_weekly_summary' ) );
 		}
 
 		// Clean up any old/incorrect cron hooks
@@ -203,6 +262,10 @@ class MemberPressGiftReporter {
 		// Use wp_schedule_event which will add the event to the cron array
 		wp_schedule_event( time(), 'daily', 'mpgr_run_gift_reminders' );
 
+		// Schedule weekly summary cron event only if enabled (runs every Monday at 9 AM)
+		// By default, weekly summary is disabled, so we don't schedule it on activation
+		// It will be scheduled when the user enables it in the settings
+
 		// Flush rewrite rules.
 		flush_rewrite_rules();
 	}
@@ -216,6 +279,13 @@ class MemberPressGiftReporter {
 		if ( $timestamp ) {
 			wp_unschedule_event( $timestamp, 'mpgr_run_gift_reminders' );
 		}
+
+		// Unschedule weekly summary cron event.
+		$timestamp = wp_next_scheduled( 'mpgr_run_weekly_summary' );
+		if ( $timestamp ) {
+			wp_unschedule_event( $timestamp, 'mpgr_run_weekly_summary' );
+		}
+		wp_clear_scheduled_hook( 'mpgr_run_weekly_summary' );
 
 		// Clean up if necessary.
 		flush_rewrite_rules();

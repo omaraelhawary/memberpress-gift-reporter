@@ -207,6 +207,39 @@ class MPGR_Admin {
 			'email_subject'          => isset( $_POST['mpgr_reminder_email_subject'] ) ? sanitize_text_field( wp_unslash( $_POST['mpgr_reminder_email_subject'] ) ) : '',
 			'email_body'             => isset( $_POST['mpgr_reminder_email_body'] ) ? wp_kses_post( wp_unslash( $_POST['mpgr_reminder_email_body'] ) ) : '',
 		);
+		
+		// Save weekly summary settings
+		// Load weekly summary class if not already loaded
+		if ( ! class_exists( 'MPGR_Weekly_Summary' ) && file_exists( MPGR_PLUGIN_PATH . 'includes/class-weekly-summary.php' ) ) {
+			require_once MPGR_PLUGIN_PATH . 'includes/class-weekly-summary.php';
+		}
+		
+		$weekly_summary_enabled = isset( $_POST['mpgr_weekly_summary_enabled'] ) ? true : false;
+		$weekly_summary_settings = array(
+			'enabled' => $weekly_summary_enabled,
+		);
+		update_option( 'mpgr_weekly_summary_settings', $weekly_summary_settings );
+		
+		// Manage weekly summary cron job based on enabled setting
+		if ( class_exists( 'MPGR_Weekly_Summary' ) ) {
+			$timestamp = wp_next_scheduled( 'mpgr_run_weekly_summary' );
+			
+			if ( $weekly_summary_enabled ) {
+				// If weekly summary is enabled, schedule the cron if not already scheduled
+				if ( ! $timestamp ) {
+					// Schedule weekly summary (runs every Monday at 9 AM)
+					$next_monday = strtotime( 'next Monday 9:00 AM' );
+					wp_schedule_event( $next_monday, 'weekly', 'mpgr_run_weekly_summary' );
+				}
+			} else {
+				// If weekly summary is disabled, unschedule the cron
+				if ( $timestamp ) {
+					wp_unschedule_event( $timestamp, 'mpgr_run_weekly_summary' );
+				}
+				// Also clear all occurrences just to be safe
+				wp_clear_scheduled_hook( 'mpgr_run_weekly_summary' );
+			}
+		}
 
 		// Process reminder schedules
 		$reminder_schedules = array();
@@ -393,6 +426,30 @@ class MPGR_Admin {
 									<input type="checkbox" id="mpgr_reminder_enabled" name="mpgr_reminder_enabled" value="1" <?php checked( $settings['enabled'], true ); ?> style="margin-right: 5px;">
 									<?php esc_html_e( 'Turn on the daily reminder process. Reminders will be sent to the person who purchased the gift.', 'memberpress-gift-reporter' ); ?>
 								</label>
+							</td>
+						</tr>
+
+						<?php
+						// Get weekly summary settings
+						if ( ! class_exists( 'MPGR_Weekly_Summary' ) && file_exists( MPGR_PLUGIN_PATH . 'includes/class-weekly-summary.php' ) ) {
+							require_once MPGR_PLUGIN_PATH . 'includes/class-weekly-summary.php';
+						}
+						$weekly_summary_settings = class_exists( 'MPGR_Weekly_Summary' ) ? MPGR_Weekly_Summary::get_settings() : array( 'enabled' => false );
+						?>
+						<tr>
+							<th scope="row">
+								<label for="mpgr_weekly_summary_enabled">
+									<?php esc_html_e( 'Enable Weekly Summary Email', 'memberpress-gift-reporter' ); ?>
+								</label>
+							</th>
+							<td>
+								<label for="mpgr_weekly_summary_enabled" style="font-weight: normal;">
+									<input type="checkbox" id="mpgr_weekly_summary_enabled" name="mpgr_weekly_summary_enabled" value="1" <?php checked( $weekly_summary_settings['enabled'], true ); ?> style="margin-right: 5px;">
+									<?php esc_html_e( 'Send a weekly summary email to the admin with gift activity statistics for the past 7 days.', 'memberpress-gift-reporter' ); ?>
+								</label>
+								<p class="description" style="margin-top: 10px;">
+									<?php esc_html_e( 'The summary email includes total gifts, claimed/unclaimed statistics, revenue, and breakdowns by product and day.', 'memberpress-gift-reporter' ); ?>
+								</p>
 							</td>
 						</tr>
 
@@ -731,5 +788,6 @@ class MPGR_Admin {
 			wp_send_json_error( array( 'message' => __( 'Failed to send test email. Please check your email configuration.', 'memberpress-gift-reporter' ) ) );
 		}
 	}
+
     
 }

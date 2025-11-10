@@ -4,13 +4,31 @@ Tags: memberpress, gifting, reports, csv export, reminders
 Requires at least: 5.0
 Tested up to: 6.8
 Requires PHP: 7.4
-Stable tag: 1.5.2
+Stable tag: 1.6.0
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
 A WordPress plugin that generates comprehensive reports for the MemberPress Gifting add-on, showing the linkage between gift givers and recipients.
 
 ## 📝 Changelog
+
+### Version 1.6.0 (2025-11-10)
+
+#### 🎉 New Features
+- **Weekly Summary Emails**: New automated weekly summary email feature that sends administrators a comprehensive overview of gift activity
+- **Weekly Cron Schedule**: Added custom weekly cron schedule support for automated weekly reports
+- **Gift Activity Overview**: Weekly summaries include total gifts, claimed/unclaimed statistics, revenue data, and top products
+- **Configurable Weekly Reports**: Enable/disable weekly summary emails with customizable settings
+
+#### 🎨 Improvements
+- **Enhanced Cron Management**: Improved cron job scheduling and cleanup for both daily reminders and weekly summaries
+- **Better Plugin Architecture**: Added support for multiple scheduled tasks with proper initialization and cleanup
+
+#### 🔧 Technical Updates
+- Added `MPGR_Weekly_Summary` class for weekly email functionality
+- Implemented weekly cron schedule registration via `cron_schedules` filter
+- Enhanced plugin activation/deactivation hooks to manage weekly summary cron jobs
+- Improved cron hook registration and cleanup processes
 
 ### Version 1.5.2 (2025-11-06)
 
