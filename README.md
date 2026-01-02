@@ -12,7 +12,7 @@ A WordPress plugin that generates comprehensive reports for the MemberPress Gift
 
 ## 📝 Changelog
 
-### Version 1.6.1 (2025-01-XX)
+### Version 1.6.1 (2026-01-02)
 
 #### 🐛 Bug Fixes
 - **Fixed Gift Checkout Links**: Fixed issue where gift redemption links were using hardcoded `/memberpress-checkout/` path instead of actual product URLs
