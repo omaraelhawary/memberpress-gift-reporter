@@ -248,8 +248,8 @@ class MPGR_Gift_Report {
 		// Get product name
 		$product_name = get_post_field('post_title', $gift_transaction->product_id);
 
-		// Generate redemption link
-		$redemption_link = home_url('/memberpress-checkout/?coupon=' . urlencode($coupon_code));
+		// Generate redemption link using product URL
+		$redemption_link = $this->generate_redemption_url( $gift_transaction->product_id, $coupon_code );
 
 		// Get user data for template variables
 		$user = get_userdata($gift_transaction->user_id);
@@ -355,8 +355,20 @@ class MPGR_Gift_Report {
 			wp_send_json_error('Coupon code not found');
 		}
 
-		// Generate redemption link
-		$redemption_link = home_url('/memberpress-checkout/?coupon=' . urlencode($coupon_code));
+		// Get product ID from transaction
+		global $wpdb;
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching -- Necessary for product lookup
+		$product_id = $wpdb->get_var($wpdb->prepare(
+			"SELECT product_id FROM {$wpdb->prefix}mepr_transactions WHERE id = %d",
+			$gift_transaction_id
+		));
+
+		if (!$product_id) {
+			wp_send_json_error('Product not found');
+		}
+
+		// Generate redemption link using product URL
+		$redemption_link = $this->generate_redemption_url( $product_id, $coupon_code );
 
 		wp_send_json_success(array(
 			'redemption_link' => $redemption_link,
@@ -472,8 +484,8 @@ class MPGR_Gift_Report {
 			// Get product name
 			$product_name = get_post_field('post_title', $gift_transaction->product_id);
 
-			// Generate redemption link
-			$redemption_link = home_url('/memberpress-checkout/?coupon=' . urlencode($coupon_code));
+			// Generate redemption link using product URL
+			$redemption_link = $this->generate_redemption_url( $gift_transaction->product_id, $coupon_code );
 
 			// Get user data for template variables
 			$user_login      = $gifter_user->user_login;
@@ -585,6 +597,34 @@ class MPGR_Gift_Report {
 		));
 	}
     
+    /**
+     * Generate gift redemption URL using product URL (like gifting plugin)
+     * 
+     * @param int    $product_id Product ID
+     * @param string $coupon_code Coupon code
+     * @return string Redemption URL
+     */
+    private function generate_redemption_url( $product_id, $coupon_code ) {
+		if ( ! class_exists( 'MeprProduct' ) ) {
+			// Fallback to hardcoded path if MemberPress not available
+			return home_url( '/register/?coupon=' . urlencode( $coupon_code ) );
+		}
+
+		$product = new \MeprProduct( $product_id );
+		if ( ! $product || ! $product->ID ) {
+			// Fallback if product not found
+			return home_url( '/register/?coupon=' . urlencode( $coupon_code ) );
+		}
+
+		// Use product URL and add coupon parameter (same as gifting plugin)
+		$url = $product->url();
+		if ( ! empty( $coupon_code ) ) {
+			$url = add_query_arg( 'coupon', $coupon_code, $url );
+		}
+
+		return esc_url( $url );
+	}
+
     /**
      * Register REST API routes
      */

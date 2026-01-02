@@ -358,6 +358,34 @@ class MPGR_Reminders {
 	}
 
 	/**
+	 * Generate gift redemption URL using product URL (like gifting plugin)
+	 * 
+	 * @param int    $product_id Product ID
+	 * @param string $coupon_code Coupon code
+	 * @return string Redemption URL
+	 */
+	protected static function generate_redemption_url( $product_id, $coupon_code ) {
+		if ( ! class_exists( 'MeprProduct' ) ) {
+			// Fallback to hardcoded path if MemberPress not available
+			return home_url( '/register/?coupon=' . urlencode( $coupon_code ) );
+		}
+
+		$product = new \MeprProduct( $product_id );
+		if ( ! $product || ! $product->ID ) {
+			// Fallback if product not found
+			return home_url( '/register/?coupon=' . urlencode( $coupon_code ) );
+		}
+
+		// Use product URL and add coupon parameter (same as gifting plugin)
+		$url = $product->url();
+		if ( ! empty( $coupon_code ) ) {
+			$url = add_query_arg( 'coupon', $coupon_code, $url );
+		}
+
+		return esc_url( $url );
+	}
+
+	/**
 	 * Send reminder email(s) for a gift
 	 * 
 	 * @param object $gift Gift object from database
@@ -383,8 +411,8 @@ class MPGR_Reminders {
 			return false;
 		}
 
-		// Generate redemption link
-		$redemption_link = home_url( '/memberpress-checkout/?coupon=' . urlencode( $coupon_code ) );
+		// Generate redemption link using product URL
+		$redemption_link = self::generate_redemption_url( $gift->product_id, $coupon_code );
 
 		// Get user data (MemberPress style)
 		$user = get_userdata( $gift->gifter_user_id );

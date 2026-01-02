@@ -4,13 +4,25 @@ Tags: memberpress, gifting, reports, csv export, reminders
 Requires at least: 5.0
 Tested up to: 6.8
 Requires PHP: 7.4
-Stable tag: 1.6.0
+Stable tag: 1.6.1
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
 A WordPress plugin that generates comprehensive reports for the MemberPress Gifting add-on, showing the linkage between gift givers and recipients.
 
 ## 📝 Changelog
+
+### Version 1.6.1 (2025-01-XX)
+
+#### 🐛 Bug Fixes
+- **Fixed Gift Checkout Links**: Fixed issue where gift redemption links were using hardcoded `/memberpress-checkout/` path instead of actual product URLs
+- **Improved Link Generation**: Redemption links now use the product's actual URL (matching MemberPress Gifting plugin behavior) with coupon parameter appended
+- **Better Compatibility**: Links now work correctly regardless of custom checkout page configurations or permalink structures
+
+#### 🔧 Technical Updates
+- Added `generate_redemption_url()` helper function to properly generate gift redemption URLs using product URLs
+- Updated all redemption link generation to use product URL method instead of hardcoded paths
+- Improved fallback handling for cases where MemberPress classes aren't available
 
 ### Version 1.6.0 (2025-11-10)
 

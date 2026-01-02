@@ -750,9 +750,26 @@ class MPGR_Admin {
 		}
 
 		// Replace variables with test data (MemberPress style: {$variable})
+		// For test, use a generic URL format
+		$test_redemption_link = home_url( '/register/?coupon=TEST-COUPON-CODE' );
+		if ( class_exists( 'MeprProduct' ) ) {
+			// Try to get a real product URL for testing
+			$test_products = get_posts( array(
+				'post_type' => 'memberpressproduct',
+				'post_status' => 'publish',
+				'numberposts' => 1,
+			) );
+			if ( ! empty( $test_products ) ) {
+				$test_product = new \MeprProduct( $test_products[0]->ID );
+				if ( $test_product && $test_product->ID ) {
+					$test_redemption_link = add_query_arg( 'coupon', 'TEST-COUPON-CODE', $test_product->url() );
+				}
+			}
+		}
+
 		$test_variables = array(
 			'product_name'    => __( 'Test Membership', 'memberpress-gift-reporter' ),
-			'redemption_link' => home_url( '/memberpress-checkout/?coupon=TEST-COUPON-CODE' ),
+			'redemption_link' => esc_url( $test_redemption_link ),
 			'site_name'       => get_bloginfo( 'name' ),
 			'blogname'        => get_bloginfo( 'name' ),
 			'user_login'      => wp_get_current_user()->user_login,
