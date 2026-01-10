@@ -249,95 +249,160 @@
     };
 
     /**
-     * Copy redemption link function
+     * Copy redemption link function - Simple Safari-compatible version
      */
     window.mpgrCopyRedemptionLink = function(giftId) {
         var $btn = $('.mpgr-copy-link[data-gift-id="' + giftId + '"]');
-        var originalText = '🔗'; // Hardcode the original text to ensure consistency
+        var originalText = '🔗';
         
-        // Prevent multiple clicks
         if ($btn.prop('disabled')) {
             return;
         }
         
-        // Show loading state
-        $btn.text('⏳').prop('disabled', true).addClass('mpgr-loading');
-
-        $.ajax({
-            url: mpgr_ajax.ajax_url,
-            type: 'POST',
-            data: {
-                action: 'mpgr_copy_redemption_link',
-                nonce: mpgr_ajax.copy_link_nonce,
-                gift_transaction_id: giftId
-            },
-            success: function(response) {
-                if (response.success) {
-                    // Copy to clipboard
-                    if (navigator.clipboard && window.isSecureContext) {
-                        navigator.clipboard.writeText(response.data.redemption_link).then(function() {
-                            // Show success state briefly
-                            $btn.text('✅').removeClass('mpgr-loading').addClass('mpgr-success');
-                            showMessage(response.data.message, 'success');
-                            
-                            // Reset button after 2 seconds
-                            setTimeout(function() {
-                                $btn.text(originalText).removeClass('mpgr-success').prop('disabled', false);
-                            }, 2000);
-                        }).catch(function() {
-                            // Fallback for older browsers
-                            copyToClipboardFallback(response.data.redemption_link);
-                            $btn.text('✅').removeClass('mpgr-loading').addClass('mpgr-success');
-                            showMessage(response.data.message, 'success');
-                            
-                            // Reset button after 2 seconds
-                            setTimeout(function() {
-                                $btn.text(originalText).removeClass('mpgr-success').prop('disabled', false);
-                            }, 2000);
-                        });
-                    } else {
-                        // Fallback for older browsers
-                        copyToClipboardFallback(response.data.redemption_link);
-                        $btn.text('✅').removeClass('mpgr-loading').addClass('mpgr-success');
-                        showMessage(response.data.message, 'success');
-                        
-                        // Reset button after 2 seconds
-                        setTimeout(function() {
-                            $btn.text(originalText).removeClass('mpgr-success').prop('disabled', false);
-                        }, 2000);
-                    }
-                } else {
-                    showMessage(response.data || 'Error copying redemption link', 'error');
-                    $btn.text(originalText).removeClass('mpgr-loading').prop('disabled', false);
-                }
-            },
-            error: function() {
-                showMessage('Error copying redemption link. Please try again.', 'error');
-                $btn.text(originalText).removeClass('mpgr-loading').prop('disabled', false);
-            }
-        });
+        // Get link from data attribute (use .attr() to avoid jQuery caching)
+        var redemptionLink = $btn.attr('data-redemption-link');
+        
+        if (!redemptionLink || redemptionLink.length === 0) {
+            showMessage('Redemption link not available', 'error');
+            return;
+        }
+        
+        $btn.prop('disabled', true);
+        
+        // Simple copy function - works in all browsers including Safari
+        var success = copyToClipboard(redemptionLink);
+        
+        if (success) {
+            $btn.text('✅').addClass('mpgr-success');
+            showMessage('Redemption link copied to clipboard', 'success');
+            setTimeout(function() {
+                $btn.text(originalText).removeClass('mpgr-success').prop('disabled', false);
+            }, 2000);
+        } else {
+            showMessage('Could not copy. Please try again.', 'error');
+            $btn.prop('disabled', false);
+        }
     };
 
     /**
-     * Fallback copy to clipboard function for older browsers
+     * Simple copy to clipboard using execCommand - works in Safari
      */
-    function copyToClipboardFallback(text) {
+    function copyToClipboard(text) {
         var textArea = document.createElement('textarea');
         textArea.value = text;
         textArea.style.position = 'fixed';
-        textArea.style.left = '-999999px';
-        textArea.style.top = '-999999px';
+        textArea.style.top = '0';
+        textArea.style.left = '0';
+        textArea.style.width = '2em';
+        textArea.style.height = '2em';
+        textArea.style.padding = '0';
+        textArea.style.border = 'none';
+        textArea.style.outline = 'none';
+        textArea.style.boxShadow = 'none';
+        textArea.style.background = 'transparent';
+        textArea.style.fontSize = '16px';
+        textArea.setAttribute('readonly', '');
+        
         document.body.appendChild(textArea);
+        
         textArea.focus();
         textArea.select();
+        textArea.setSelectionRange(0, text.length);
         
+        var success = false;
         try {
-            document.execCommand('copy');
+            success = document.execCommand('copy');
         } catch (err) {
-            console.error('Fallback: Oops, unable to copy', err);
+            console.error('Copy failed:', err);
         }
         
         document.body.removeChild(textArea);
+        
+        return success;
+    }
+    
+    /**
+     * Show a copy prompt dialog when automatic copy fails (Safari async fallback)
+     * 
+     * @param {string} text - Text to display for manual copying
+     */
+    function showCopyPrompt(text) {
+        // Create a modal overlay for manual copy
+        var $overlay = $('<div class="mpgr-copy-modal-overlay"></div>');
+        var $modal = $('<div class="mpgr-copy-modal">' +
+            '<h3>📋 Copy Redemption Link</h3>' +
+            '<p>Click the link below to select it, then press <kbd>Cmd+C</kbd> (Mac) or <kbd>Ctrl+C</kbd> (Windows) to copy:</p>' +
+            '<input type="text" class="mpgr-copy-input" value="' + text + '" readonly onclick="this.select(); this.setSelectionRange(0, 99999);">' +
+            '<div class="mpgr-copy-modal-buttons">' +
+                '<button class="mpgr-copy-modal-close">Close</button>' +
+            '</div>' +
+        '</div>');
+        
+        // Add styles
+        $overlay.css({
+            position: 'fixed',
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            backgroundColor: 'rgba(0, 0, 0, 0.5)',
+            zIndex: 100000,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center'
+        });
+        
+        $modal.css({
+            backgroundColor: '#fff',
+            padding: '20px',
+            borderRadius: '8px',
+            maxWidth: '500px',
+            width: '90%',
+            boxShadow: '0 4px 20px rgba(0, 0, 0, 0.3)'
+        });
+        
+        $modal.find('.mpgr-copy-input').css({
+            width: '100%',
+            padding: '10px',
+            fontSize: '14px',
+            border: '1px solid #ddd',
+            borderRadius: '4px',
+            marginBottom: '15px'
+        });
+        
+        $modal.find('.mpgr-copy-modal-close').css({
+            padding: '10px 20px',
+            backgroundColor: '#0073aa',
+            color: '#fff',
+            border: 'none',
+            borderRadius: '4px',
+            cursor: 'pointer'
+        });
+        
+        $overlay.append($modal);
+        $('body').append($overlay);
+        
+        // Focus and select the input
+        $modal.find('.mpgr-copy-input').focus().select();
+        
+        // Close handlers
+        $modal.find('.mpgr-copy-modal-close').on('click', function() {
+            $overlay.remove();
+        });
+        
+        $overlay.on('click', function(e) {
+            if ($(e.target).is($overlay)) {
+                $overlay.remove();
+            }
+        });
+        
+        // Close on Escape
+        $(document).on('keydown.mpgrModal', function(e) {
+            if (e.key === 'Escape') {
+                $overlay.remove();
+                $(document).off('keydown.mpgrModal');
+            }
+        });
     }
 
     /**

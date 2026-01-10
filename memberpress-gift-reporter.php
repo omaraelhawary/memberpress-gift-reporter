@@ -2,7 +2,7 @@
 /**
  * Plugin Name: MemberPress Gift Reporter
  * Plugin URI: https://github.com/omaraelhawary/memberpress-gift-reporter
- * Description: Generate comprehensive reports for MemberPress Gifting add-on, showing the linkage between gift givers and recipients.
+ * Description: Generate comprehensive reports for MemberPress Gifting add-on, showing the linkage between gift givers and recipients. This is an independent plugin (not affiliated with MemberPress) developed by Omar ElHawary.
  * Version: 1.6.1
  * Author: Omar ElHawary
  * Author URI: https://www.linkedin.com/in/omaraelhawary/
@@ -11,7 +11,7 @@
  * Text Domain: memberpress-gift-reporter
  * Domain Path: /languages
  * Requires at least: 5.0
- * Tested up to: 6.4
+ * Tested up to: 6.8
  * Requires PHP: 7.4
  * 
  * @package MemberPressGiftReporter

@@ -1577,8 +1577,12 @@ class MPGR_Gift_Report {
                 echo '<td class="mpgr-actions">';
                 // Show resend email button
                 echo '<button class="mpgr-action-btn mpgr-resend-email" data-gift-id="' . esc_attr($row['gift_transaction_id']) . '" title="' . esc_attr__( 'Resend gift email to gifter', 'memberpress-gift-reporter' ) . '">📧</button>';
-                // Show copy link button
-                echo '<button class="mpgr-action-btn mpgr-copy-link" data-gift-id="' . esc_attr($row['gift_transaction_id']) . '" title="' . esc_attr__( 'Copy redemption link', 'memberpress-gift-reporter' ) . '">🔗</button>';
+                // Show copy link button - include redemption link as data attribute for Safari compatibility
+                $redemption_link = '';
+                if ( ! empty( $row['coupon_code'] ) && $row['coupon_code'] !== 'Deleted Coupon' && ! empty( $row['product_id'] ) ) {
+                    $redemption_link = $this->generate_redemption_url( $row['product_id'], $row['coupon_code'] );
+                }
+                echo '<button class="mpgr-action-btn mpgr-copy-link" data-gift-id="' . esc_attr($row['gift_transaction_id']) . '" data-redemption-link="' . esc_attr( $redemption_link ) . '" title="' . esc_attr__( 'Copy redemption link', 'memberpress-gift-reporter' ) . '">🔗</button>';
                 echo '</td>';
                 
                 echo '</tr>';
