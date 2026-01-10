@@ -23,13 +23,21 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 
 // Default variables if not set (MemberPress style)
+// phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedVariableFound -- Template variables extracted from array, following WordPress template standards
 $product_name    = isset( $product_name ) ? $product_name : '';
+// phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedVariableFound -- Template variables extracted from array, following WordPress template standards
 $redemption_link = isset( $redemption_link ) ? $redemption_link : '';
+// phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedVariableFound -- Template variables extracted from array, following WordPress template standards
 $site_name       = isset( $site_name ) ? $site_name : ( isset( $blogname ) ? $blogname : get_bloginfo( 'name' ) );
+// phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedVariableFound -- Template variables extracted from array, following WordPress template standards
 $blogname        = isset( $blogname ) ? $blogname : ( isset( $site_name ) ? $site_name : get_bloginfo( 'name' ) );
+// phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedVariableFound -- Template variables extracted from array, following WordPress template standards
 $user_login      = isset( $user_login ) ? $user_login : '';
+// phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedVariableFound -- Template variables extracted from array, following WordPress template standards
 $user_email      = isset( $user_email ) ? $user_email : '';
+// phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedVariableFound -- Template variables extracted from array, following WordPress template standards
 $user_first_name = isset( $user_first_name ) ? $user_first_name : '';
+// phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedVariableFound -- Template variables extracted from array, following WordPress template standards
 $user_last_name  = isset( $user_last_name ) ? $user_last_name : '';
 ?>
 <div style="font-size: 18px; font-weight: bold; margin-bottom: 20px;">Hello!</div>

@@ -8,7 +8,7 @@ A comprehensive WordPress plugin that generates detailed reports for the MemberP
 
 - **Version:** 1.6.2
 - **Requires at least:** WordPress 5.0
-- **Tested up to:** WordPress 6.8
+- **Tested up to:** WordPress 6.9
 - **Requires PHP:** 7.4 or higher
 - **License:** GPLv2 or later
 - **Author:** Omar ElHawary
@@ -27,7 +27,7 @@ A comprehensive WordPress plugin that generates detailed reports for the MemberP
 ### Version 1.6.2 (2026-01-10)
 
 #### 🔧 Technical Updates
-- Updated tested WordPress version to 6.8
+- Updated tested WordPress version to 6.9
 - Improved plugin header documentation
 
 ### Version 1.6.1 (2026-01-02)

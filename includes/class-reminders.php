@@ -167,7 +167,7 @@ class MPGR_Reminders {
 				$table = $wpdb->prefix . 'mepr_transaction_meta';
 				
 				// Update sent count
-				// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery -- Necessary for reminder meta update
+				// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching -- Necessary for reminder meta update, caching not applicable for transaction meta
 				$exists = $wpdb->get_var(
 					$wpdb->prepare(
 						'SELECT COUNT(*) FROM ' . esc_sql( $table ) . ' WHERE transaction_id = %d AND meta_key = %s',
@@ -177,7 +177,7 @@ class MPGR_Reminders {
 				);
 				
 				if ( $exists ) {
-					// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery -- Necessary for reminder meta update
+					// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching,WordPress.DB.SlowDBQuery.slow_db_query_meta_key,WordPress.DB.SlowDBQuery.slow_db_query_meta_value -- Necessary for reminder meta update, caching not applicable and meta queries required for transaction meta
 					$wpdb->update(
 						$table,
 						array( 'meta_value' => $schedule_index + 1 ),
@@ -189,7 +189,7 @@ class MPGR_Reminders {
 						array( '%d', '%s' )
 					);
 				} else {
-					// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery -- Necessary for reminder meta update
+					// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching,WordPress.DB.SlowDBQuery.slow_db_query_meta_key,WordPress.DB.SlowDBQuery.slow_db_query_meta_value -- Necessary for reminder meta update, caching not applicable and meta queries required for transaction meta
 					$wpdb->insert(
 						$table,
 						array(
@@ -202,7 +202,7 @@ class MPGR_Reminders {
 				}
 				
 				// Update last reminder timestamp
-				// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery -- Necessary for reminder meta update
+				// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching -- Necessary for reminder meta update, caching not applicable for transaction meta
 				$exists = $wpdb->get_var(
 					$wpdb->prepare(
 						'SELECT COUNT(*) FROM ' . esc_sql( $table ) . ' WHERE transaction_id = %d AND meta_key = %s',
@@ -212,7 +212,7 @@ class MPGR_Reminders {
 				);
 				
 				if ( $exists ) {
-					// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery -- Necessary for reminder meta update
+					// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching,WordPress.DB.SlowDBQuery.slow_db_query_meta_key,WordPress.DB.SlowDBQuery.slow_db_query_meta_value -- Necessary for reminder meta update, caching not applicable and meta queries required for transaction meta
 					$wpdb->update(
 						$table,
 						array( 'meta_value' => time() ),
@@ -224,7 +224,7 @@ class MPGR_Reminders {
 						array( '%d', '%s' )
 					);
 				} else {
-					// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery -- Necessary for reminder meta update
+					// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching,WordPress.DB.SlowDBQuery.slow_db_query_meta_key,WordPress.DB.SlowDBQuery.slow_db_query_meta_value -- Necessary for reminder meta update, caching not applicable and meta queries required for transaction meta
 					$wpdb->insert(
 						$table,
 						array(

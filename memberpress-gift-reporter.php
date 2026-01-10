@@ -11,7 +11,7 @@
  * Text Domain: memberpress-gift-reporter
  * Domain Path: /languages
  * Requires at least: 5.0
- * Tested up to: 6.8
+ * Tested up to: 6.9
  * Requires PHP: 7.4
  * 
  * @package MemberPressGiftReporter
@@ -32,7 +32,7 @@ define( 'MPGR_PLUGIN_BASENAME', plugin_basename( __FILE__ ) );
 /**
  * Main plugin class
  */
-class MemberPressGiftReporter {
+class MPGR_MemberPressGiftReporter {
     
     /**
      * Plugin instance
@@ -293,4 +293,4 @@ class MemberPressGiftReporter {
 }
 
 // Initialize the plugin.
-MemberPressGiftReporter::get_instance();
+MPGR_MemberPressGiftReporter::get_instance();

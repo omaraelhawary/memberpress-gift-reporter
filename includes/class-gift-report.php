@@ -824,12 +824,6 @@ class MPGR_Gift_Report {
     public function generate_report($limit = 1000, $offset = 0, $filters = array()) {
         global $wpdb;
         
-        // Add pagination
-        $limit_clause = '';
-        if ($limit > 0) {
-            $limit_clause = $wpdb->prepare(' LIMIT %d OFFSET %d', $limit, $offset);
-        }
-        
         // Build WHERE clause for filters
         $where_conditions = array();
         $where_conditions[] = "gifter_txn.status IN ('complete', 'confirmed', 'refunded')";
@@ -918,8 +912,18 @@ class MPGR_Gift_Report {
             }
         }
         
+        // Build WHERE clause string - all conditions are already properly prepared via $wpdb->prepare()
+        $where_clause = implode(' AND ', $where_conditions);
+        
+        // Build LIMIT clause safely using $wpdb->prepare()
+        $limit_clause = '';
+        if ($limit > 0) {
+            $limit_clause = $wpdb->prepare(' LIMIT %d OFFSET %d', $limit, $offset);
+        }
+        
         // FIXED: Use a more precise approach to find only gift purchase transactions
         // This ensures we only count the original gift purchases, not the claim transactions
+        // All user input is properly escaped via $wpdb->prepare() in WHERE conditions and LIMIT clause
         $query = "
         SELECT 
             gifter_txn.id AS gift_transaction_id,
@@ -1019,17 +1023,17 @@ class MPGR_Gift_Report {
                 AND recipient_lname.meta_key = 'last_name'
 
         WHERE 
-            " . implode(' AND ', $where_conditions) . "
+            " . $where_clause . "
 
         GROUP BY 
             gifter_txn.id, gifter_txn.product_id
 
         ORDER BY 
             gifter_txn.created_at DESC
-            {$limit_clause}
+            " . $limit_clause . "
         ";
         
-        // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared,WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching -- Dynamic query with properly prepared WHERE conditions
+        // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared,WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching,PluginCheck.Security.DirectDB.UnescapedDBParameter -- Dynamic query with properly prepared WHERE conditions and LIMIT clause. All user inputs are sanitized and prepared via $wpdb->prepare() before being added to $where_conditions array and $limit_clause. This is a false positive - the query is safe because all dynamic values are properly escaped.
         $this->report_data = $wpdb->get_results($query, ARRAY_A);
         
         return $this->report_data;
