@@ -1,16 +1,34 @@
-=== MemberPress Gift Reporter ===
-Contributors: omaraelhawary
-Tags: memberpress, gifting, reports, csv export, reminders
-Requires at least: 5.0
-Tested up to: 6.8
-Requires PHP: 7.4
-Stable tag: 1.6.1
-License: GPLv2 or later
-License URI: https://www.gnu.org/licenses/gpl-2.0.html
+# MemberPress Gift Reporter
 
-A WordPress plugin that generates comprehensive reports for the MemberPress Gifting add-on, showing the linkage between gift givers and recipients.
+**Note: This is an independent plugin developed by Omar ElHawary. It is not an official MemberPress plugin.**
+
+A comprehensive WordPress plugin that generates detailed reports for the MemberPress Gifting add-on, showing the linkage between gift givers and recipients. This plugin provides advanced filtering, CSV export capabilities, automated reminder emails, and a modern admin interface.
+
+## Plugin Information
+
+- **Version:** 1.6.2
+- **Requires at least:** WordPress 5.0
+- **Tested up to:** WordPress 6.8
+- **Requires PHP:** 7.4 or higher
+- **License:** GPLv2 or later
+- **Author:** Omar ElHawary
+- **Tags:** memberpress, gifting, reports, csv export, reminders, analytics
+
+## Requirements
+
+- WordPress 5.0 or higher
+- PHP 7.4 or higher
+- MemberPress plugin (active)
+- MemberPress Gifting add-on (active)
+- MySQL 5.7+ or MariaDB 10.2+
 
 ## 📝 Changelog
+
+### Version 1.6.2 (2026-01-10)
+
+#### 🔧 Technical Updates
+- Updated tested WordPress version to 6.8
+- Improved plugin header documentation
 
 ### Version 1.6.1 (2026-01-02)
 
@@ -433,4 +451,8 @@ This plugin is licensed under the GPL v2 or later.
 
 ---
 
-**Note**: This plugin requires MemberPress and the MemberPress Gifting add-on to function properly.
+## Important Note
+
+**This plugin is developed and maintained independently by Omar ElHawary. It is not affiliated with, endorsed by, or officially supported by MemberPress.**
+
+This plugin requires MemberPress and the MemberPress Gifting add-on to function properly. For support, feature requests, or bug reports, please contact the plugin developer at omaraelhawary@gmail.com.

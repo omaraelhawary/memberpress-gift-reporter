@@ -3,7 +3,7 @@ Contributors: omaraelhawary
 Tags: memberpress, gifting, reports, csv export, reminders, analytics
 Requires at least: 5.0
 Tested up to: 6.8
-Stable tag: 1.6.1
+Stable tag: 1.6.2
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -159,6 +159,9 @@ You can contact the developer at omaraelhawary@gmail.com
 
 == Changelog ==
 
+= 1.6.2 =
+* Updated tested WordPress version to 6.8
+
 = 1.6.1 =
 * Fixed Gift Checkout Links: Fixed issue where gift redemption links were using hardcoded `/memberpress-checkout/` path instead of actual product URLs
 * Improved Link Generation: Redemption links now use the product's actual URL (matching MemberPress Gifting plugin behavior) with coupon parameter appended
@@ -258,6 +261,9 @@ You can contact the developer at omaraelhawary@gmail.com
 * REST API endpoints
 
 == Upgrade Notice ==
+
+= 1.6.2 =
+Prepared for WordPress.org submission. Update recommended for all users.
 
 = 1.6.1 =
 Fixed gift redemption link generation to use actual product URLs instead of hardcoded paths. Update recommended for all users.
