@@ -374,7 +374,8 @@ class MPGR_Admin {
 		);
 
 		// Localize script for reminder settings (only on reminders tab)
-		$current_tab = isset( $_GET['tab'] ) ? sanitize_text_field( wp_unslash( $_GET['tab'] ) ) : 'report';
+		$tab_input = filter_input( INPUT_GET, 'tab', FILTER_SANITIZE_FULL_SPECIAL_CHARS );
+		$current_tab = ( $tab_input && is_string( $tab_input ) ) ? sanitize_text_field( $tab_input ) : 'report';
 		if ( 'reminders' === $current_tab ) {
 			$settings = MPGR_Reminders::get_settings();
 			$default_gifter_body = $this->get_default_email_body();
