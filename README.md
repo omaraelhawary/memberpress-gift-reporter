@@ -1,4 +1,4 @@
-# MemberPress Gift Reporter
+# Gift Reporter for MemberPress
 
 **Note: This is an independent plugin developed by Omar ElHawary. It is not an official MemberPress plugin.**
 

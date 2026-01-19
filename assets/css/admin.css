@@ -1,0 +1,25 @@
+/**
+ * Gift Reporter for MemberPress - Admin Styles
+ * 
+ * @package MemberPressGiftReporter
+ */
+
+/* Tab Navigation Styles */
+.mpgr-nav-tabs {
+	margin: 20px 0 0 0;
+}
+
+.mpgr-nav-tabs .dashicons {
+	margin-right: 5px;
+}
+
+/* Reminder Settings Styles */
+.mpgr-reminder-settings {
+	background: #fff;
+	padding: 20px;
+	margin: 20px 0;
+}
+
+#mpgr_reminder_email_body {
+	width: 100%;
+}

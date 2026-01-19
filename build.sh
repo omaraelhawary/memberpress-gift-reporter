@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# MemberPress Gift Reporter - Build Script
+# Gift Reporter for MemberPress - Build Script
 # This script creates a consistent distribution zip file
 
 set -e  # Exit on any error
@@ -11,11 +11,11 @@ GREEN='\033[0;32m'
 YELLOW='\033[1;33m'
 NC='\033[0m' # No Color
 
-echo -e "${GREEN}🚀 Building MemberPress Gift Reporter distribution package...${NC}"
+echo -e "${GREEN}🚀 Building Gift Reporter for MemberPress distribution package...${NC}"
 
 # Get the plugin directory
 PLUGIN_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-PLUGIN_NAME="memberpress-gift-reporter"
+PLUGIN_NAME="gift-reporter-for-memberpress"
 ZIP_NAME="${PLUGIN_NAME}.zip"
 BUILD_DIR="${PLUGIN_DIR}/build"
 

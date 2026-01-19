@@ -1,6 +1,6 @@
-# Contributing to MemberPress Gift Reporter
+# Contributing to Gift Reporter for MemberPress
 
-Thank you for your interest in contributing to MemberPress Gift Reporter! This document provides guidelines and instructions for contributing.
+Thank you for your interest in contributing to Gift Reporter for MemberPress! This document provides guidelines and instructions for contributing.
 
 ## How to Contribute
 
@@ -74,7 +74,7 @@ This plugin follows WordPress Coding Standards:
 
 1. **Clone the repository:**
    ```bash
-   git clone https://github.com/omaraelhawary/memberpress-gift-reporter.git
+   git clone https://github.com/omaraelhawary/gift-reporter-for-memberpress.git
    cd memberpress-gift-reporter
    ```
 
@@ -146,5 +146,5 @@ If you have questions about contributing, feel free to:
 - Open an issue with the `question` label
 - Contact the maintainer at omaraelhawary@gmail.com
 
-Thank you for contributing to MemberPress Gift Reporter! 🎉
+Thank you for contributing to Gift Reporter for MemberPress! 🎉
 

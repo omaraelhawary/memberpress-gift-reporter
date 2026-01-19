@@ -1,5 +1,5 @@
 /**
- * MemberPress Gift Reporter - Frontend JavaScript
+ * Gift Reporter for MemberPress - Frontend JavaScript
  * 
  * @package MemberPressGiftReporter
  */

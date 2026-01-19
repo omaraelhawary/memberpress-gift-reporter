@@ -1,7 +1,7 @@
 <?php
 /**
- * Plugin Name: MemberPress Gift Reporter
- * Plugin URI: https://github.com/omaraelhawary/memberpress-gift-reporter
+ * Plugin Name: Gift Reporter for MemberPress
+ * Plugin URI: https://github.com/omaraelhawary/gift-reporter-for-memberpress
  * Description: Generate comprehensive reports for MemberPress Gifting add-on, showing the linkage between gift givers and recipients. This is an independent plugin (not affiliated with MemberPress) developed by Omar ElHawary.
  * Version: 1.6.2
  * Author: Omar ElHawary
@@ -151,7 +151,7 @@ class MPGR_MemberPressGiftReporter {
      */
 	public function memberpress_notice() {
 		echo '<div class="notice notice-error">';
-		echo '<p><strong>' . esc_html__( 'MemberPress Gift Reporter', 'memberpress-gift-reporter' ) . '</strong> ' . esc_html__( 'requires MemberPress to be installed and activated.', 'memberpress-gift-reporter' ) . '</p>';
+		echo '<p><strong>' . esc_html__( 'Gift Reporter for MemberPress', 'memberpress-gift-reporter' ) . '</strong> ' . esc_html__( 'requires MemberPress to be installed and activated.', 'memberpress-gift-reporter' ) . '</p>';
 		echo '<p>' . esc_html__( 'Please ensure that:', 'memberpress-gift-reporter' ) . '</p>';
 		echo '<ul style="margin-left: 20px;">';
 		echo '<li>' . esc_html__( 'MemberPress plugin is installed and activated', 'memberpress-gift-reporter' ) . '</li>';

@@ -1,4 +1,4 @@
-=== MemberPress Gift Reporter ===
+=== Gift Reporter for MemberPress ===
 Contributors: omaraelhawary
 Tags: memberpress, gifting, reports, csv export, reminders
 Requires at least: 5.0
@@ -13,7 +13,7 @@ Reporting plugin for MemberPress Gifting. Generates detailed reports linking gif
 
 **Note: This is an independent plugin developed by Omar ElHawary. It is not an official MemberPress plugin.**
 
-MemberPress Gift Reporter is a powerful WordPress plugin that extends the functionality of the MemberPress Gifting add-on by providing comprehensive reporting and management tools. Track gift purchases, redemptions, and manage gift communications all from one convenient dashboard.
+Gift Reporter for MemberPress is a powerful WordPress plugin that extends the functionality of the MemberPress Gifting add-on by providing comprehensive reporting and management tools. Track gift purchases, redemptions, and manage gift communications all from one convenient dashboard.
 
 = Key Features =
 

@@ -11,7 +11,7 @@ We actively support and provide security updates for the following versions:
 
 ## Reporting a Vulnerability
 
-We take the security of MemberPress Gift Reporter seriously. If you believe you have found a security vulnerability, please report it to us as described below.
+We take the security of Gift Reporter for MemberPress seriously. If you believe you have found a security vulnerability, please report it to us as described below.
 
 ### Please do NOT:
 
@@ -69,5 +69,5 @@ This plugin:
 
 Security updates will be released as new versions. Please update the plugin as soon as security updates are available.
 
-Thank you for helping keep MemberPress Gift Reporter and its users safe!
+Thank you for helping keep Gift Reporter for MemberPress and its users safe!
 

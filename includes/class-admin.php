@@ -71,7 +71,7 @@ class MPGR_Admin {
 		// Check if MemberPress Gifting is active.
 		if ( ! $this->is_gifting_active() ) {
 					echo '<div class="notice notice-warning is-dismissible">';
-			echo '<p><strong>' . esc_html__( 'MemberPress Gift Reporter:', 'memberpress-gift-reporter' ) . '</strong> ' . esc_html__( 'MemberPress Gifting add-on is not active. This plugin requires the MemberPress Gifting add-on to function properly.', 'memberpress-gift-reporter' ) . '</p>';
+			echo '<p><strong>' . esc_html__( 'Gift Reporter for MemberPress:', 'memberpress-gift-reporter' ) . '</strong> ' . esc_html__( 'MemberPress Gifting add-on is not active. This plugin requires the MemberPress Gifting add-on to function properly.', 'memberpress-gift-reporter' ) . '</p>';
 		echo '</div>';
 		}
 	}
@@ -340,11 +340,67 @@ class MPGR_Admin {
 		// Enqueue jQuery if not already enqueued
 		wp_enqueue_script( 'jquery' );
 
+		// Enqueue admin CSS (use minified version if available, fallback to unminified)
+		$admin_css = file_exists( MPGR_PLUGIN_PATH . 'assets/css/admin.min.css' ) 
+			? MPGR_PLUGIN_URL . 'assets/css/admin.min.css' 
+			: MPGR_PLUGIN_URL . 'assets/css/admin.css';
+		wp_enqueue_style(
+			'mpgr-admin-styles',
+			$admin_css,
+			array(),
+			MPGR_VERSION
+		);
+
+		// Enqueue admin JS (use minified version if available, fallback to unminified)
+		$admin_js = file_exists( MPGR_PLUGIN_PATH . 'assets/js/admin.min.js' ) 
+			? MPGR_PLUGIN_URL . 'assets/js/admin.min.js' 
+			: MPGR_PLUGIN_URL . 'assets/js/admin.js';
+		wp_enqueue_script(
+			'mpgr-admin-script',
+			$admin_js,
+			array( 'jquery' ),
+			MPGR_VERSION,
+			true
+		);
+
 		// Localize script for AJAX
-		wp_add_inline_script( 'jquery', 'var mpgr_reminder_ajax = ' . wp_json_encode( array(
-			'ajax_url' => admin_url( 'admin-ajax.php' ),
-			'nonce'    => wp_create_nonce( 'mpgr_send_test_email' ),
-		) ) . ';', 'before' );
+		wp_localize_script(
+			'mpgr-admin-script',
+			'mpgr_reminder_ajax',
+			array(
+				'ajax_url' => admin_url( 'admin-ajax.php' ),
+				'nonce'    => wp_create_nonce( 'mpgr_send_test_email' ),
+			)
+		);
+
+		// Localize script for reminder settings (only on reminders tab)
+		$current_tab = isset( $_GET['tab'] ) ? sanitize_text_field( wp_unslash( $_GET['tab'] ) ) : 'report';
+		if ( 'reminders' === $current_tab ) {
+			$settings = MPGR_Reminders::get_settings();
+			$default_gifter_body = $this->get_default_email_body();
+			$default_gifter_subject = __( 'Reminder: Your Gift Purchase - {$product_name}', 'memberpress-gift-reporter' );
+			$schedules = ! empty( $settings['reminder_schedules'] ) ? $settings['reminder_schedules'] : array( array( 'delay_value' => 7, 'delay_unit' => 'days' ) );
+
+			wp_localize_script(
+				'mpgr-admin-script',
+				'mpgrReminderSettings',
+				array(
+					'defaultTemplate'      => $default_gifter_body,
+					'defaultSubject'       => $default_gifter_subject,
+					'scheduleIndex'        => count( $schedules ),
+					'resetConfirmMessage'  => esc_js( __( 'Are you sure you want to reset the email template to default?', 'memberpress-gift-reporter' ) ),
+					'sendReminderText'     => esc_js( __( 'Send reminder after', 'memberpress-gift-reporter' ) ),
+					'hoursText'            => esc_js( __( 'hours', 'memberpress-gift-reporter' ) ),
+					'daysText'             => esc_js( __( 'days', 'memberpress-gift-reporter' ) ),
+					'removeText'           => esc_js( __( 'Remove', 'memberpress-gift-reporter' ) ),
+					'invalidEmailText'     => esc_js( __( 'Please enter a valid email address.', 'memberpress-gift-reporter' ) ),
+					'sendingText'          => esc_js( __( 'Sending...', 'memberpress-gift-reporter' ) ),
+					'successText'          => esc_js( __( 'Test email sent successfully!', 'memberpress-gift-reporter' ) ),
+					'errorText'            => esc_js( __( 'Failed to send test email.', 'memberpress-gift-reporter' ) ),
+					'errorSendingText'     => esc_js( __( 'Error sending test email.', 'memberpress-gift-reporter' ) ),
+				)
+			);
+		}
 	}
 
 	/**
@@ -362,7 +418,7 @@ class MPGR_Admin {
 			),
 		);
 		?>
-		<h1 class="wp-heading-inline"><?php esc_html_e( 'MemberPress Gift Reporter', 'memberpress-gift-reporter' ); ?></h1>
+		<h1 class="wp-heading-inline"><?php esc_html_e( 'Gift Reporter for MemberPress', 'memberpress-gift-reporter' ); ?></h1>
 		<hr class="wp-header-end">
 		<nav class="nav-tab-wrapper mpgr-nav-tabs">
 			<?php
@@ -378,14 +434,6 @@ class MPGR_Admin {
 			}
 			?>
 		</nav>
-		<style>
-		.mpgr-nav-tabs {
-			margin: 20px 0 0 0;
-		}
-		.mpgr-nav-tabs .dashicons {
-			margin-right: 5px;
-		}
-		</style>
 		<?php
 	}
 
@@ -567,135 +615,6 @@ class MPGR_Admin {
 				</p>
 			</form>
 		</div>
-
-		<script>
-		jQuery(document).ready(function($) {
-			var defaultTemplate = <?php echo wp_json_encode( $default_gifter_body ); ?>;
-			var defaultSubject = <?php echo wp_json_encode( $default_gifter_subject ); ?>;
-			var scheduleIndex = <?php echo count( $schedules ); ?>;
-			
-			// Reset email template
-			$('.mpgr-reset-email-template').on('click', function() {
-				if (confirm('<?php echo esc_js( __( 'Are you sure you want to reset the email template to default?', 'memberpress-gift-reporter' ) ); ?>')) {
-					if (typeof tinyMCE !== 'undefined' && tinyMCE.get('mpgr_gifter_email_body')) {
-						tinyMCE.get('mpgr_gifter_email_body').setContent(defaultTemplate);
-					} else {
-						$('#mpgr_gifter_email_body').val(defaultTemplate);
-					}
-					$('#mpgr_gifter_email_subject').val(defaultSubject);
-				}
-			});
-			
-			// Add new schedule row
-			$('#mpgr-add-schedule').on('click', function() {
-				var row = $('<div class="mpgr-schedule-row" style="margin-bottom: 10px; display: flex; align-items: center; gap: 10px;">' +
-					'<label><?php echo esc_js( __( 'Send reminder after', 'memberpress-gift-reporter' ) ); ?> ' +
-					'<input type="number" name="mpgr_reminder_schedules[' + scheduleIndex + '][delay_value]" value="14" min="0" max="365" class="small-text mpgr-delay-value" style="width: 60px;" required> ' +
-					'<select name="mpgr_reminder_schedules[' + scheduleIndex + '][delay_unit]" class="mpgr-delay-unit" style="margin-left: 5px;">' +
-					'<option value="hours"><?php echo esc_js( __( 'hours', 'memberpress-gift-reporter' ) ); ?></option>' +
-					'<option value="days" selected><?php echo esc_js( __( 'days', 'memberpress-gift-reporter' ) ); ?></option>' +
-					'</select>' +
-					'</label> ' +
-					'<button type="button" class="button button-small mpgr-remove-schedule"><?php echo esc_js( __( 'Remove', 'memberpress-gift-reporter' ) ); ?></button>' +
-					'</div>');
-				$('#mpgr-reminder-schedules').append(row);
-				scheduleIndex++;
-				updateRemoveButtons();
-			});
-			
-			// Update max value when unit changes
-			$(document).on('change', '.mpgr-delay-unit', function() {
-				var unit = $(this).val();
-				var input = $(this).closest('.mpgr-schedule-row').find('.mpgr-delay-value');
-				var currentValue = parseInt(input.val()) || 0;
-				var maxValue = (unit === 'hours') ? 8760 : 365;
-				input.attr('max', maxValue);
-				// If current value exceeds new max, adjust it
-				if (currentValue > maxValue) {
-					input.val(maxValue);
-				}
-			});
-			
-			// Remove schedule row
-			$(document).on('click', '.mpgr-remove-schedule', function() {
-				$(this).closest('.mpgr-schedule-row').remove();
-				updateRemoveButtons();
-			});
-			
-			function updateRemoveButtons() {
-				var rowCount = $('.mpgr-schedule-row').length;
-				$('.mpgr-remove-schedule').toggle(rowCount > 1);
-			}
-			
-			updateRemoveButtons();
-			
-			// Test email functionality
-			$('#mpgr-send-test-email').on('click', function() {
-				$('#mpgr-test-email-input').slideDown();
-				$('#mpgr-test-email-status').text('');
-			});
-			
-			$('#mpgr-cancel-test-email').on('click', function() {
-				$('#mpgr-test-email-input').slideUp();
-				$('#mpgr-test-email-status').text('');
-			});
-			
-			$('#mpgr-send-test-email-confirm').on('click', function() {
-				var email = $('#mpgr-test-email-address').val();
-				if (!email || !email.match(/^[^\s@]+@[^\s@]+\.[^\s@]+$/)) {
-					alert('<?php echo esc_js( __( 'Please enter a valid email address.', 'memberpress-gift-reporter' ) ); ?>');
-					return;
-				}
-				
-				var emailSubject = $('#mpgr_gifter_email_subject').val();
-				var emailBody = '';
-				if (typeof tinyMCE !== 'undefined' && tinyMCE.get('mpgr_gifter_email_body')) {
-					emailBody = tinyMCE.get('mpgr_gifter_email_body').getContent();
-				} else {
-					emailBody = $('#mpgr_gifter_email_body').val();
-				}
-				
-				$('#mpgr-test-email-status').html('<span style="color: #666;"><?php echo esc_js( __( 'Sending...', 'memberpress-gift-reporter' ) ); ?></span>');
-				
-				$.ajax({
-					url: mpgr_reminder_ajax.ajax_url,
-					type: 'POST',
-					data: {
-						action: 'mpgr_send_test_reminder_email',
-						nonce: mpgr_reminder_ajax.nonce,
-						email: email,
-						email_subject: emailSubject,
-						email_body: emailBody
-					},
-					success: function(response) {
-						if (response.success) {
-							$('#mpgr-test-email-status').html('<span style="color: #46b450;"><?php echo esc_js( __( 'Test email sent successfully!', 'memberpress-gift-reporter' ) ); ?></span>');
-							$('#mpgr-test-email-input').slideUp();
-							setTimeout(function() {
-								$('#mpgr-test-email-status').text('');
-							}, 5000);
-						} else {
-							$('#mpgr-test-email-status').html('<span style="color: #dc3232;">' + (response.data.message || '<?php echo esc_js( __( 'Failed to send test email.', 'memberpress-gift-reporter' ) ); ?>') + '</span>');
-						}
-					},
-					error: function() {
-						$('#mpgr-test-email-status').html('<span style="color: #dc3232;"><?php echo esc_js( __( 'Error sending test email.', 'memberpress-gift-reporter' ) ); ?></span>');
-					}
-				});
-			});
-		});
-		</script>
-
-		<style>
-		.mpgr-reminder-settings {
-			background: #fff;
-			padding: 20px;
-			margin: 20px 0;
-		}
-		#mpgr_reminder_email_body {
-			width: 100%;
-		}
-		</style>
 		<?php
 	}
 

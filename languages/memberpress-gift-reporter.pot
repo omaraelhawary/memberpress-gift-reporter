@@ -1,8 +1,8 @@
-# Copyright (C) 2024 MemberPress Gift Reporter
+# Copyright (C) 2024 Gift Reporter for MemberPress
 # This file is distributed under the GPL v2 or later.
 msgid ""
 msgstr ""
-"Project-Id-Version: MemberPress Gift Reporter 1.0.0\n"
+"Project-Id-Version: Gift Reporter for MemberPress 1.0.0\n"
 "Report-Msgid-Bugs-To: https://wordpress.org/support/plugin/memberpress-gift-reporter\n"
 "POT-Creation-Date: 2024-01-01 00:00+0000\n"
 "MIME-Version: 1.0\n"
@@ -25,7 +25,7 @@ msgid "View Report"
 msgstr ""
 
 #: includes/class-admin.php:75
-msgid "MemberPress Gift Reporter:"
+msgid "Gift Reporter for MemberPress:"
 msgstr ""
 
 #: includes/class-admin.php:76
@@ -100,22 +100,22 @@ msgstr ""
 msgid "Error occurred"
 msgstr ""
 
-#: memberpress-gift-reporter.php:15
-msgid "MemberPress Gift Reporter"
+#: gift-reporter-for-memberpress.php:15
+msgid "Gift Reporter for MemberPress"
 msgstr ""
 
-#: memberpress-gift-reporter.php:16
+#: gift-reporter-for-memberpress.php:16
 msgid "Generate comprehensive reports for MemberPress Gifting add-on, showing the linkage between gift givers and recipients."
 msgstr ""
 
-#: memberpress-gift-reporter.php:20
+#: gift-reporter-for-memberpress.php:20
 msgid "GPL v2 or later"
 msgstr ""
 
-#: memberpress-gift-reporter.php:21
+#: gift-reporter-for-memberpress.php:21
 msgid "https://www.gnu.org/licenses/gpl-2.0.html"
 msgstr ""
 
-#: memberpress-gift-reporter.php:22
+#: gift-reporter-for-memberpress.php:22
 msgid "memberpress-gift-reporter"
 msgstr ""

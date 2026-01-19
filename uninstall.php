@@ -1,6 +1,6 @@
 <?php
 /**
- * Uninstall MemberPress Gift Reporter
+ * Uninstall Gift Reporter for MemberPress
  * 
  * This file is executed when the plugin is deleted from WordPress.
  * It removes all plugin-specific data but preserves MemberPress transaction data.
